@@ -1,5 +1,7 @@
-### python-orcid ###
+python-orcid
+============
 
-#### Authors ####
+Authors
+-------
 
 Mateusz Susik <mateuszsusik@gmail.com>
