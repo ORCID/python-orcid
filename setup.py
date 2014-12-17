@@ -1,8 +1,8 @@
 """Setup file for python-orcid."""
 
 from distutils.core import setup
-setup(name='python-orcid',
-      packages=['python-orcid'],
+setup(name='orcid',
+      packages=['orcid'],
       version='0.0',
       description='A python wrapper over ORCID API',
       author='Mateusz Susik',
@@ -12,4 +12,5 @@ setup(name='python-orcid',
       # download_url='https://github.com/.../tarball/0.1',
       keywords=['orcid', 'api', 'wrapper'],
       classifiers=[],
+      package_data={'orcid': ['templates/*.xml']}
       )
