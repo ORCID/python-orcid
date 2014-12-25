@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<orcid-message xmlns="http://www.orcid.org/ns/orcid"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="https://raw.github.com/ORCID/ORCID-Source/master/orcid-model/src/main/resources/orcid-message-1.1.xsd">
+  <message-version>1.1</message-version>
+  <orcid-profile>
+    <orcid-activities>
+        <funding-list>
+            {% for record in records %}
+            <funding>
+                <type>
+                    {{ record.type }}
+                </type>
+                {% if record.title %}
+                    <funding-title>
+                        <title>
+                            {{ record.title }}
+                        </title>
+                    </funding-title>
+                {% endif %}
+                {% if record.description %}
+                    <short-description>
+                        {{ record.description }}
+                    </short-description>
+                {% endif %}
+                <amount currency-code="{{ record.amount.currency }}">
+                  {{ record.amount.value }}
+                </amount>
+                {% if record.url %}
+                    <url>
+                        {{ record.url }}
+                    </url>
+                {% endif %}
+                {% if record.start_date %}
+                    <start-date>
+                      <year>{{ record.start_date.year }}</year>
+                      {% if record.start_date.month %}
+                      <month>{{ record.start_date.month }}</month>
+                      {% if record.start_date.day %}
+                      <day>{{ record.start_date.day }}</day>
+                      {% endif %}
+                      {% endif %}
+                    </start-date>
+                {% endif %}
+                {% if record.end_date %}
+                    <end-date>
+                      <year>{{ record.end_date.year }}</year>
+                      {% if record.end_date.month %}
+                      <month>{{ record.end_date.month }}</month>
+                      {% if record.end_date.day %}
+                      <day>{{ record.end_date.day }}</day>
+                      {% endif %}
+                      {% endif %}
+                    </end-date>
+                {% endif %}
+                {% if record.external_ids %}
+                <funding-external-identifiers>
+                    {% for external_id in record.external_ids %}
+                        <funding-external-identifier>
+                            <funding-external-identifier-type>
+                                {{ external_id.type }}
+                            </funding-external-identifier-type>
+                            <funding-external-identifier-value>
+                                {{ external_id.value }}
+                            </funding-external-identifier-value>
+                            {% if external_id.url %}
+                                <funding-external-identifier-url>
+                                    {{ external_id.url }}
+                                </funding-external-identifier-url>
+                            {% endif %}
+                        </funding-external-identifier>
+                    {% endfor %}
+                </funding-external-identifiers>
+                {% endif %}
+                {% if record.contributors %}
+                <funding-contributors>
+                    {% for contributor in record.contributors %}
+                    <funding-contributor>
+                        {% if contributor.orcid %}
+                            <contributor-orcid>
+                                <uri>
+                                    {{ contributor.orcid.uri }}
+                                </uri>
+                                <path>
+                                    {{ contributor.orcid.path }}
+                                </path>
+                                <host>
+                                    {{ contributor.orcid.host }}
+                                </host>
+                            </contributor-orcid>
+                        {% endif %}
+                        {% if contributor.name %}
+                            <credit-name>
+                                {{ contributor.name }}
+                            </credit-name>
+                        {% endif %}
+                        {% if contributor.email %}
+                            <contributor-email>
+                                {{ contributor.email }}
+                            </contributor-email>
+                        {% endif %}
+                        {% if contributor.attributes %}
+                            <funding-contributor-attributes>
+                                <funding-contributor-role>
+                                    {{ contributor.attributes.role }}
+                                </funding-contributor-role>
+                            </funding-contributor-attributes>
+                        {% endif %}
+                        {% if contributor.organization %}
+                        <organization>
+                        {% if contributor.organization.name %}
+                          <name>
+                            {{ contributor.organization.name }}
+                          </name>
+                        {% endif %}
+                        {% if contributor.organization.address %}
+                          <address>
+                            <city>
+                              {{ contributor.organization.address.city }}
+                            </city>
+                            {% if contributor.organization.address.region %}
+                              <region>
+                                {{ contributor.organization.address.region }}
+                              </region>
+                            {% endif %}
+                            <country>
+                              <!-- two letter code iso -->
+                              {{ contributor.organization.address.country }}
+                            </country>
+                          </address>
+                        {% endif %}
+                        {% if contributor.organization.disambiguated %}
+                          <disambiguated-organization>
+                            <disambiguated-organization-identifier>
+                              {{ contributor.organization.disambiguated.id }}
+                            </disambiguated-organization-identifier>
+                            <disambiguation-source>
+                              {{ contributor.organization.disambiguated.source }}
+                            </disambiguation-source>
+                          </disambiguated-organization>
+                        {% endif %}
+                        </organization>
+                        {% endif %}
+                    </funding-contributor>
+                    {% endfor %}
+                </funding-contributors>
+                {% endif %}
+            </funding>
+            {% endfor %}
+        </funding-list>
+    </orcid-activities>
+  </orcid-profile>
+</orcid-message>

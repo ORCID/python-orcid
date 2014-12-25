@@ -45,12 +45,12 @@
           {% if record.publication_date %}
           <publication-date>
               <year>{{ record.publication_date.year }}</year>
-              {%- if record.publication_date.month %}
+              {% if record.publication_date.month %}
               <month>{{ record.publication_date.month }}</month>
-              {%- if record.publication_date.day %}
+              {% if record.publication_date.day %}
               <day>{{ record.publication_date.day }}</day>
-              {%- endif %}
-              {%- endif %}
+              {% endif %}
+              {% endif %}
           </publication-date>
           {% endif %}
           {% if record.work_external_identifiers %}
