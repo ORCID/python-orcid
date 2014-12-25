@@ -1,102 +1,37 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<orcid-message xmlns="http://www.orcid.org/ns/orcid"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="https://raw.github.com/ORCID/ORCID-Source/master/orcid-model/src/main/resources/orcid-message-1.1.xsd">
-  <message-version>1.1</message-version>
-  <orcid-profile>
-    <orcid-activities>
-      <affiliations>
-        {% for record in records %}
-        <affiliation {% if record.visibility %}visibility="{{ record.visibility }}"{% endif %}{% if record.put_code %} put-code="{{ record.put_code }}"{% endif %}>
-          <type>
-            <!-- education lub employment -->
-            {{ record.type }}
-          </type>
-          <name>
-            {{ record.name }}
-          </name>
-          {% if record.department %}
-            <department-name>
-              {{ record.department }}
-            </department-name>
-          {% endif %}
-          {% if record.role %}
-            <role-title>
-              {{ record.role }}
-            </role-title>
-          {% endif %}
-          {% if record.start_date %}
-            <start-date>
-              <year>
-                {{ record.end_date.year }}
-              </year>
-              {% if record.start_date.month %}
-                <month>
-                  {{ record.start_date.month }}
-                </month>
-              {% endif %}
-              {% if record.start_date.day %}
-                <day>
-                  {{ record.start_date.day }}
-                </day>
-              {% endif %}
-            </start-date>
-          {% endif %}
-          {% if record.end_date %}
-            <end-date>
-              <year>
-                {{ record.end_date.year }}
-              </year>
-              {% if record.end_date.month %}
-                <month>
-                  {{ record.end_date.month }}
-                </month>
-              {% endif %}
-              {% if record.end_date.day %}
-                <day>
-                  {{ record.end_date.day }}
-                </day>
-              {% endif %}
-            </end-date>
-          {% endif %}
-          {% if record.organization %}
-            <organization>
-            {% if record.organization.name %}
-              <name>
-                {{ record.organization.name }}
-              </name>
-            {% endif %}
-            {% if record.organization.address %}
-              <address>
-                <city>
-                  {{ record.organization.address.city }}
-                </city>
-                {% if record.organization.address.region %}
-                  <region>
-                    {{ record.organization.address.region }}
-                  </region>
-                {% endif %}
-                <country>
-                  <!-- two letter code iso -->
-                  {{ record.organization.address.country }}
-                </country>
-              </address>
-            {% endif %}
-            {% if record.organization.disambiguated %}
-              <disambiguated-organization>
-                <disambiguated-organization-identifier>
-                  {{ record.organization.disambiguated.id }}
-                </disambiguated-organization-identifier>
-                <disambiguation-source>
-                  {{ record.organization.disambiguated.source }}
-                </disambiguation-source>
-              </disambiguated-organization>
-            {% endif %}
-            </organization>
-          {% endif %}
-        </affiliation>
-        {% endfor %}
-      </affiliations>
-    </orcid-activities>
-  </orcid-profile>
-</orcid-message>
+
+{% extends "base.html" %}
+
+{% block content %}
+<affiliations>
+  {% for record in records %}
+  <affiliation {% if record.visibility %}visibility="{{ record.visibility }}"{% endif %}{% if record.put_code %} put-code="{{ record.put_code }}"{% endif %}>
+    <type>
+      <!-- education lub employment -->
+      {{ record.type }}
+    </type>
+    <name>
+      {{ record.name }}
+    </name>
+    {% if record.department %}
+      <department-name>
+        {{ record.department }}
+      </department-name>
+    {% endif %}
+    {% if record.role %}
+      <role-title>
+        {{ record.role }}
+      </role-title>
+    {% endif %}
+    {% if record.start_date %}
+      {{ date_xml("start-date", record.start_date) }}
+    {% endif %}
+    {% if record.end_date %}
+      {{ date_xml("end-date", record.end_date) }}
+    {% endif %}
+    {% if record.organization %}
+      {{ organization(record) }}
+    {% endif %}
+  </affiliation>
+  {% endfor %}
+</affiliations>
+{% endblock %}
