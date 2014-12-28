@@ -40,6 +40,7 @@ To get info about a researcher, you need to know his ORCID. Then, using this
 library you can do:
 
 .. code-block:: python
+
     import orcid
     orcid.get_info(orcid_id, scope, request_type)
 
@@ -55,9 +56,10 @@ Every time you fetch the data, you can specify response format. Allowed values
 are: ``json`` and ``xml``.
 
 In case of ``json``, the library returns a result of ``json.loads``.
-In case of ``xml`, the library returns a result of ``etree.fromstring``.
+In case of ``xml``, the library returns a result of ``etree.fromstring``.
 
 .. code-block:: python
+
     orcid.get_info(orcid_id, `member`, 'orcid-bio', response_format='json')
 
 There is also ``get_id`` function, which is equivalent to ``get_info`` with
