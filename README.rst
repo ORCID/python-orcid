@@ -111,13 +111,13 @@ be provided with.
 
 Note that the majority of fields and subfields can be skipped.
 
-When in doubt, please refer to ORCID documetation:
+When in doubt, please refer to the ORCID documetation:
 `ORCID XML <http://support.orcid.org/knowledgebase/topics/32832-orcid-xml>`_
 
 orcid-works
 -----------
 
-`orcid-works` can be used when there is a need to add or update researcher's
+``orcid-works`` can be used when there is a need to add or update researcher's
 works. It should a list of dictionaries. Each dictionary describes a single
 work. Each dictionary can contain following fields:
 
@@ -125,26 +125,117 @@ work. Each dictionary can contain following fields:
 
     [{
     ...
+        # Should contain the title of the work. It is a mandatory field.
         'work_title': {'title': 'The best sorting algorithm',
                        'subtitle': 'Better even than quicksort'
                        'translated_titles': [
                                              ('fr', 'Le meilleur algorithme de tri'),
                                              ('pl', 'Najlepszy algorytm sortujący')
                                             ]
-                       } 
+                       },
     ...
     }]
 
-Should contain the title of the work. It is a mandatory field.
 
 .. code-block:: python
     
     [{
     ...
+        'journal_title': 'The best sorting algorithm ever',
     ...
     }]
 
-[{
-...
-...
-}]
+
+.. code-block:: python
+
+    [{
+    ...
+        'short_description': 'We present an algorithm sorting any list in O(1)`,
+    ...
+    }]
+
+.. code-block:: python
+    [{
+    ...
+        # see http://support.orcid.org/knowledgebase/articles/135758-anatomy-of-a-citation
+        'work_citation': (`bibtex`, `@article {Haak:2012:0953-1513:259,
+                          author = "Haak, Laurel L. and Fenner, Martin and Paglione,
+                          Laura and Pentz, Ed and Ratner, Howard",
+                          title = "ORCID: a system to uniquely identify researchers",
+                          journal = "Learned Publishing",
+                          volume = "25",
+                          number = "4",
+                          year = "2012",
+                          pages = "259-264",
+                          doi = "doi:10.1087/20120404"}`
+                          ),
+    ...
+    }]
+
+.. code-block:: python
+    [{
+    ...
+        # see http://support.orcid.org/knowledgebase/articles/118795
+        'work_type': 'report',
+    ...
+    }]
+
+.. code-block:: python
+    [{
+    ...
+        'publication_date': {'year': 2017,
+                             'month': 02,
+                             'day': 10
+        },
+    ...
+    }]
+
+.. code-block:: python
+    [{
+    ...
+        # see http://support.orcid.org/knowledgebase/articles/118807
+        'work_external_identifiers': [('other-id', 'very unique id')],
+    ...
+    }]
+
+.. code-block:: python
+    [{
+    ...
+        'url': 'https://github.com/MSusik/python-orcid',
+    ...
+    }]
+
+.. code-block:: python
+    [{
+    ...
+        # see http://support.orcid.org/knowledgebase/articles/118843-anatomy-of-a-contributor
+        'contributors': {
+            'name': 'Some Body',
+            'email': 'somebody@mailinator.com',
+            'attributes': {
+                'role': 'author',
+                'sequence': 'first'
+            }
+        },
+    ...
+    }]
+
+.. code-block:: python
+    [{
+    ...
+        'language_code': 'en',
+    ...
+    }]
+
+.. code-block:: python
+    [{
+    ...
+        'country': 'US'
+    ...
+    }]
+
+orcid-affiliations
+------------------
+
+orcid-funding
+-------------

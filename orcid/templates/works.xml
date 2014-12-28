@@ -82,9 +82,6 @@
       {% endfor %}
     </work-contributors>
     {% endif %}
-    {% if record.work_source %}
-    <work-source>{{ record.work_source }}</work-source>
-    {% endif %}
     {% if record.language_code %}
     <language-code>{{ record.language_code }}</language-code>
     {% endif %}
