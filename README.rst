@@ -154,6 +154,7 @@ work. Each dictionary can contain following fields:
     ...
     }]
 
+
 .. code-block:: python
     [{
     ...
@@ -172,6 +173,7 @@ work. Each dictionary can contain following fields:
     ...
     }]
 
+
 .. code-block:: python
     [{
     ...
@@ -179,6 +181,7 @@ work. Each dictionary can contain following fields:
         'work_type': 'report',
     ...
     }]
+
 
 .. code-block:: python
     [{
@@ -190,6 +193,7 @@ work. Each dictionary can contain following fields:
     ...
     }]
 
+
 .. code-block:: python
     [{
     ...
@@ -198,12 +202,14 @@ work. Each dictionary can contain following fields:
     ...
     }]
 
+
 .. code-block:: python
     [{
     ...
         'url': 'https://github.com/MSusik/python-orcid',
     ...
     }]
+
 
 .. code-block:: python
     [{
@@ -220,6 +226,7 @@ work. Each dictionary can contain following fields:
     ...
     }]
 
+
 .. code-block:: python
     [{
     ...
@@ -227,12 +234,14 @@ work. Each dictionary can contain following fields:
     ...
     }]
 
+
 .. code-block:: python
     [{
     ...
         'country': 'US'
     ...
     }]
+
 
 orcid-affiliations
 ------------------
