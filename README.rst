@@ -84,10 +84,67 @@ this task. Here are few popular choices (the order below is quite random):
 * `Flask OAuthLib <https://github.com/lepture/flask-oauthlib>`_
 * `Flask Dance <https://github.com/singingwolfboy/flask-dance>`_
 
+If you want more options or you know more libraries worth recommending, please
+check `this page. <http://oauth.net/code/>`_
+
 Use ``push_data``, to send info:
 
 .. code-block:: python
 
-    orcid.push_data(orcid_id, scope, token, json)
+    orcid.push_data(orcid_id, scope, token, list_with_data)
+
+or
+
+.. code-block:: python
+
+    orcid.push_data(orcid_id, scope, token, xml, no_render='true')
+
+if you have already prepared the ORCID XML.
 
 The `token` is the one that you received from OAuth 3-legged authorization.
+
+The scope can be one of `orcid-works`, `orcid-affiliations`, `orcid-funding`.
+These scopes allow to send different types of information to ORCID. If you
+don't have the ORCID XML prepared, you should read detailed info below. It
+describes the structure of the list that the `push_data` function should
+be provided with.
+
+Note that the majority of fields and subfields can be skipped.
+
+When in doubt, please refer to ORCID documetation:
+`ORCID XML <http://support.orcid.org/knowledgebase/topics/32832-orcid-xml>`_
+
+orcid-works
+-----------
+
+`orcid-works` can be used when there is a need to add or update researcher's
+works. It should a list of dictionaries. Each dictionary describes a single
+work. Each dictionary can contain following fields:
+
+.. code-block:: python
+
+    [{
+    ...
+        'work_title': {'title': 'The best sorting algorithm',
+                       'subtitle': 'Better even than quicksort'
+                       'translated_titles': [
+                                             ('fr', 'Le meilleur algorithme de tri'),
+                                             ('pl', 'Najlepszy algorytm sortujący')
+                                            ]
+                       } 
+    ...
+    }]
+
+Should contain the title of the work. It is a mandatory field.
+
+.. code-block:: python
+    
+    [{
+    ...
+    ...
+    }]
+
+[{
+...
+...
+}]
