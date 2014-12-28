@@ -156,6 +156,7 @@ work. Each dictionary can contain following fields:
 
 
 .. code-block:: python
+
     [{
     ...
         # see http://support.orcid.org/knowledgebase/articles/135758-anatomy-of-a-citation
@@ -175,6 +176,7 @@ work. Each dictionary can contain following fields:
 
 
 .. code-block:: python
+
     [{
     ...
         # see http://support.orcid.org/knowledgebase/articles/118795
@@ -184,6 +186,7 @@ work. Each dictionary can contain following fields:
 
 
 .. code-block:: python
+
     [{
     ...
         'publication_date': {'year': 2017,
@@ -195,6 +198,7 @@ work. Each dictionary can contain following fields:
 
 
 .. code-block:: python
+
     [{
     ...
         # see http://support.orcid.org/knowledgebase/articles/118807
@@ -204,6 +208,7 @@ work. Each dictionary can contain following fields:
 
 
 .. code-block:: python
+
     [{
     ...
         'url': 'https://github.com/MSusik/python-orcid',
@@ -212,6 +217,7 @@ work. Each dictionary can contain following fields:
 
 
 .. code-block:: python
+
     [{
     ...
         # see http://support.orcid.org/knowledgebase/articles/118843-anatomy-of-a-contributor
@@ -228,6 +234,7 @@ work. Each dictionary can contain following fields:
 
 
 .. code-block:: python
+
     [{
     ...
         'language_code': 'en',
@@ -236,6 +243,7 @@ work. Each dictionary can contain following fields:
 
 
 .. code-block:: python
+
     [{
     ...
         'country': 'US'
