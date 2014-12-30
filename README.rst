@@ -118,7 +118,7 @@ orcid-works
 -----------
 
 ``orcid-works`` can be used when there is a need to add or update researcher's
-works. It should a list of dictionaries. Each dictionary describes a single
+works. It should be a list of dictionaries. Each dictionary describes a single
 work. Each dictionary can contain following fields:
 
 .. code-block:: python
@@ -159,7 +159,7 @@ work. Each dictionary can contain following fields:
 
     [{
     ...
-        # see http://support.orcid.org/knowledgebase/articles/135758-anatomy-of-a-citation
+        # See http://support.orcid.org/knowledgebase/articles/135758-anatomy-of-a-citation
         'work_citation': (`bibtex`, `@article {Haak:2012:0953-1513:259,
                           author = "Haak, Laurel L. and Fenner, Martin and Paglione,
                           Laura and Pentz, Ed and Ratner, Howard",
@@ -179,7 +179,7 @@ work. Each dictionary can contain following fields:
 
     [{
     ...
-        # see http://support.orcid.org/knowledgebase/articles/118795
+        # See http://support.orcid.org/knowledgebase/articles/118795
         'work_type': 'report',
     ...
     }]
@@ -201,7 +201,7 @@ work. Each dictionary can contain following fields:
 
     [{
     ...
-        # see http://support.orcid.org/knowledgebase/articles/118807
+        # See http://support.orcid.org/knowledgebase/articles/118807
         'work_external_identifiers': [('other-id', 'very unique id')],
     ...
     }]
@@ -220,7 +220,7 @@ work. Each dictionary can contain following fields:
 
     [{
     ...
-        # see http://support.orcid.org/knowledgebase/articles/118843-anatomy-of-a-contributor
+        # See http://support.orcid.org/knowledgebase/articles/118843-anatomy-of-a-contributor
         'contributors': {
             'name': 'Some Body',
             'email': 'somebody@mailinator.com',
@@ -254,5 +254,188 @@ work. Each dictionary can contain following fields:
 orcid-affiliations
 ------------------
 
+``orcid-affiliations`` can be used when there is a need to add or update researcher's
+affiliations. It should be a list of dictionaries. Each dictionary describes a single
+affiliation. Each dictionary can contain following fields:
+
+.. code-block:: python
+
+    [{
+    ...
+        # Can contain one of tho values: 'education' or 'employment'.
+        # It is a mandatory field.
+        'type': 'education',
+    ...
+    }]
+
+
+.. code-block:: python
+
+    [{
+    ...
+        # The name of the department
+        'department': 'University of Nothing',
+    ...
+    }]
+
+
+.. code-block:: python
+
+    [{
+    ...
+        'role': 'senior professor',
+    ...
+    }]
+
+
+.. code-block:: python
+
+    [{
+    ...
+        'start_date': {'year': 2010,
+                       'month': 02,
+                       'day': 10
+        },
+    ...
+    }]
+
+
+.. code-block:: python
+
+    [{
+    ...
+        'end_date': {'year': 2011,
+                     'month': 02,
+                     'day': 10
+        },
+    ...
+    }]
+
+
+.. code-block:: python
+
+    [{
+    ...
+        'organization': ...
+    ...
+    }]
+
+See organization XML (link needed)
+
 orcid-funding
 -------------
+
+``orcid-funding`` can be used when there is a need to add or update a funding
+given to the researcher. It should be a list of dictionaries. 
+Each dictionary describes a single funding. Each dictionary can contain
+following fields:
+
+.. code-block:: python
+
+    [{
+    ...
+        # Can contain one of tho values: 'award', 'contract', 'salary-award',
+        # 'grant'.
+        # It is a mandatory field.
+        'type': 'grant',
+    ...
+    }]
+
+
+.. code-block:: python
+
+    [{
+    ...
+        'title': 'Super grant',
+    ...
+    }]
+
+
+.. code-block:: python
+
+    [{
+    ...
+        'description': 'I got this grant because I'm very smart. I'm planning
+        to buy a yacht for it.',
+    ...
+    }]
+
+
+.. code-block:: python
+
+    [{
+    ...
+        # mandatory field
+        'amount': {'currency': 'USD',
+                   'value': 10000},
+    ...
+    }]
+
+.. code-block:: python
+
+    [{
+    ...
+        'url': 'www.mypapawasarollingstone.org',
+    ...
+    }]
+
+
+.. code-block:: python
+
+    [{
+    ...
+        'start_date': {'year': 2010,
+                       'month': 02,
+                       'day': 10
+        },
+    ...
+    }]
+
+
+.. code-block:: python
+
+    [{
+    ...
+        'end_date': {'year': 2011,
+                     'month': 02,
+                     'day': 10
+        },
+    ...
+    }]
+
+.. code-block:: python
+
+    [{
+    ...
+        'external_ids': [{'type': 'other-id',
+                          'value': 'someid',
+                          'url': 'www.example.com'}],
+    ...
+    }]
+
+.. code-block:: python
+
+    [{
+    ...
+        'contributors': [{
+            'orcid': {
+                'uri': 'http://orcid.org/0000-0003-4494-0734',
+                'path': '0000-0003-4494-0734',
+                'host': 'orcid.org'
+            },
+            # credit name
+            'name': 'Smith, John.',
+            'email': 'john@mailinator.com',
+            'attributes': {
+                # one of 'lead', 'co lead', 'supported by', 'other'
+                'role': 'lead',
+            }
+            'organization': ...
+        }]
+    ...
+    }]
+
+See organization XML (link needed) for contributor's organization subfield
+
+Organization XML
+----------------
