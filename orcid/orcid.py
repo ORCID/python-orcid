@@ -1,6 +1,5 @@
 """Implementation of python-orcid library."""
 
-# TO DO: requirements
 from jinja2 import FileSystemLoader, Environment
 from lxml import etree
 
@@ -145,7 +144,7 @@ def get_id(orcid_id, scope, response_format='json'):
 # UPDATING DATA ###############################################################
 
 
-def push_data(orcid_id, scope, token, json):
+def push_data(orcid_id, scope, token, formatted_data, render=True):
     """Push new works to the profile.
 
     :scope: Can be one of works,affiliations,funding
@@ -156,7 +155,8 @@ def push_data(orcid_id, scope, token, json):
     template_dir = '%s/templates/' % current_path
     environment = Environment(loader=FileSystemLoader(template_dir))
     template = environment.get_template("%s.xml" % scope)
-    xml = template.render({'records': json})
+    xml = template.render({'records': formatted_data}) if render \
+        else formatted_data
 
     headers = {'Accept': 'application/vnd.orcid+xml',
                'Content-Type': 'application/vnd.orcid+xml',

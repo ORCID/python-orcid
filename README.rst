@@ -114,7 +114,7 @@ or
 
 .. code-block:: python
 
-    orcid.push_data(orcid_id, scope, token, xml, no_render='true')
+    orcid.push_data(orcid_id, scope, token, xml, render=False)
 
 if you have already prepared the ORCID XML.
 
@@ -485,3 +485,4 @@ To do
 + Implement update API
 + Add requirements
 + Add possibility of sending XML directly
++ Error handling
