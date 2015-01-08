@@ -483,6 +483,5 @@ To do
 + Test funding and affiliations
 + Implement the rest of the push API
 + Implement update API
-+ Add requirements
-+ Add possibility of sending XML directly
 + Error handling
++ Write tests, add travis and coverage
