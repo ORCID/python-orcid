@@ -41,11 +41,9 @@ def set_endpoint(sandbox=False):
     Config.SANDBOX = sandbox
 
     if sandbox:
-        Config.ENDPOINT_MEMBER = "https://api.sandbox.orcid.org"
+        Config.ENDPOINT_MEMBER = "http://api.sandbox.orcid.org"
         Config.KEY = Config.SANDBOX_KEY
         Config.SECRET = Config.SANDBOX_SECRET
-        print Config.KEY
-        print Config.SECRET
     else:
         Config.ENDPOINT_MEMBER = "https://api.orcid.org/"
         Config.ENDPOINT_PUBLIC = "http://pub.orcid.org"
@@ -76,7 +74,6 @@ def set_credentials(key, secret, sandbox=False):
 
 
 def _get_access_token_from_orcid(scope):
-    print Config.KEY
     payload = {'client_id': Config.KEY,
                'client_secret': Config.SECRET,
                'scope': scope,
@@ -165,13 +162,14 @@ def push_data(orcid_id, scope, token, json):
                'Content-Type': 'application/vnd.orcid+xml',
                'Authorization': 'Bearer ' + token
                }
-
+    print "START"
     print xml
-    print url
-
-    print "Waiting for a response!"
+    print "END"
     response = requests.post(url, xml, headers=headers)
-    print "I have a response"
 
     code = response.status_code
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError, exc:
+        print exc
+        print response.text

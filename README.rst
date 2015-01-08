@@ -29,19 +29,38 @@ TODO, will be released on PyPI.
 Configuration
 -------------
 
-There are two modes: ``sandbox`` and ``production``. TODO
+Before you use this library, you might need to configure it. Configuration
+should be done every time you import the library.
+There are two modes: ``sandbox`` and ``production``. They require different
+credentials. The ``sandbox`` mode should be used when you are developing new
+features. The ``production`` mode should be used after the features are
+developed and tested. You can switch between modes:
+
+.. code-block:: python
+
+    import orcid
+    orcid.set_endpoint(sandbox=True)
+    # The default value is False
+    orcid.set_endpoint()
+
+Some of the features of this library (namely ``get_info`` and ``get_id``
+functions wuth ``member`` scope) require organization credentials to be set.
+You can do it in this way:
+
+.. code-block:: python
+
+    orcid.set_credentials(organization_orcid, organization_secret, sandbox=True)
 
 Getting information
 -------------------
 
-Currently works only on production mode.
+Note that 
 
 To get info about a researcher, you need to know his ORCID. Then, using this
 library you can do:
 
 .. code-block:: python
 
-    import orcid
     orcid.get_info(orcid_id, scope, request_type)
 
 
@@ -69,8 +88,6 @@ There is also ``get_id`` function, which is equivalent to ``get_info`` with
 
 Sending information
 -------------------
-
-TODO: add possibility of sending XML directly
 
 This library won't help you with obtaining correct user's authentication
 token. I believe it is a responsibility of the service you provide to ask a
@@ -103,10 +120,10 @@ if you have already prepared the ORCID XML.
 
 The `token` is the one that you received from OAuth 3-legged authorization.
 
-The scope can be one of `orcid-works`, `orcid-affiliations`, `orcid-funding`.
+The scope can be one of ``orcid-works``, ``orcid-affiliations``, ``orcid-funding``.
 These scopes allow to send different types of information to ORCID. If you
 don't have the ORCID XML prepared, you should read detailed info below. It
-describes the structure of the list that the `push_data` function should
+describes the structure of the list that the ``push_data`` function should
 be provided with.
 
 Note that the majority of fields and subfields can be skipped.
@@ -119,7 +136,8 @@ orcid-works
 
 ``orcid-works`` can be used when there is a need to add or update researcher's
 works. It should be a list of dictionaries. Each dictionary describes a single
-work. Each dictionary can contain following fields:
+work. There are two mandatory fields: ``work_title`` and ``work_type``.
+Each dictionary can contain following fields:
 
 .. code-block:: python
 
@@ -180,6 +198,7 @@ work. Each dictionary can contain following fields:
     [{
     ...
         # See http://support.orcid.org/knowledgebase/articles/118795
+        # It is a mandatory field
         'work_type': 'report',
     ...
     }]
@@ -189,9 +208,9 @@ work. Each dictionary can contain following fields:
 
     [{
     ...
-        'publication_date': {'year': 2017,
-                             'month': 02,
-                             'day': 10
+        'publication_date': {'year': '2017',
+                             'month': '02',
+                             'day': '10'
         },
     ...
     }]
@@ -223,6 +242,7 @@ work. Each dictionary can contain following fields:
         # See http://support.orcid.org/knowledgebase/articles/118843-anatomy-of-a-contributor
         'contributors': {
             'name': 'Some Body',
+            'orcid': '0000-0002-1233-3422',
             'email': 'somebody@mailinator.com',
             'attributes': {
                 'role': 'author',
@@ -246,7 +266,7 @@ work. Each dictionary can contain following fields:
 
     [{
     ...
-        'country': 'US'
+        'country': ('limited', 'US')
     ...
     }]
 
@@ -292,9 +312,9 @@ affiliation. Each dictionary can contain following fields:
 
     [{
     ...
-        'start_date': {'year': 2010,
-                       'month': 02,
-                       'day': 10
+        'start_date': {'year': '2010',
+                       'month': '02',
+                       'day': '10'
         },
     ...
     }]
@@ -304,9 +324,9 @@ affiliation. Each dictionary can contain following fields:
 
     [{
     ...
-        'end_date': {'year': 2011,
-                     'month': 02,
-                     'day': 10
+        'end_date': {'year': '2011',
+                     'month': '02',
+                     'day': '10'
         },
     ...
     }]
@@ -384,9 +404,9 @@ following fields:
 
     [{
     ...
-        'start_date': {'year': 2010,
-                       'month': 02,
-                       'day': 10
+        'start_date': {'year': '2010',
+                       'month': '02',
+                       'day': '10'
         },
     ...
     }]
@@ -396,9 +416,9 @@ following fields:
 
     [{
     ...
-        'end_date': {'year': 2011,
-                     'month': 02,
-                     'day': 10
+        'end_date': {'year': '2011',
+                     'month': '02',
+                     'day': '10'
         },
     ...
     }]
@@ -439,3 +459,29 @@ See organization XML (link needed) for contributor's organization subfield
 
 Organization XML
 ----------------
+
+TO DO
+
+Additional options for pushing
+------------------------------
+
+Every work/affiliation/funding can have it's privacy level set by setting
+``visibility`` field:
+
+.. code-block:: python
+
+    [{
+    ...
+        # one of 'private', 'limited', 'public'
+        'visibility': 'private',
+    ...
+    }]
+
+To do
+-----
+
++ Test funding and affiliations
++ Implement the rest of the push API
++ Implement update API
++ Add requirements
++ Add possibility of sending XML directly

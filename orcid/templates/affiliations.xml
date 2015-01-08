@@ -1,12 +1,11 @@
 
-{% extends "base.html" %}
+{% extends "base.xml" %}
 
 {% block content %}
 <affiliations>
   {% for record in records %}
   <affiliation {% if record.visibility %}visibility="{{ record.visibility }}"{% endif %}{% if record.put_code %} put-code="{{ record.put_code }}"{% endif %}>
     <type>
-      <!-- education lub employment -->
       {{ record.type }}
     </type>
     <name>

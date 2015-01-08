@@ -1,6 +1,4 @@
-
-{% extends "base.html" %}
-
+{% extends "base.xml" %}
 {% block content %}
 <orcid-works>
   {% for record in records %}
