@@ -341,7 +341,8 @@ affiliation. Each dictionary can contain following fields:
     ...
     }]
 
-See organization XML (link needed)
+See `organization XML <https://github.com/MSusik/python-orcid#organization-xml>`_
+for details.
 
 orcid-funding
 -------------
@@ -456,7 +457,7 @@ following fields:
     ...
     }]
 
-See organization XML (link needed) for contributor's organization subfield
+See `organization XML <https://github.com/MSusik/python-orcid#organization-xml>`_ for contributor's organization subfield
 
 Organization XML
 ----------------
