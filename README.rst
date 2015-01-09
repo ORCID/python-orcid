@@ -3,7 +3,7 @@ python-orcid
 
 Current state
 -------------
-Under development, doesn't work yet.
+Under development, some features work.
 
 Authors
 -------
@@ -34,7 +34,8 @@ should be done every time you import the library.
 There are two modes: ``sandbox`` and ``production``. They require different
 credentials. The ``sandbox`` mode should be used when you are developing new
 features. The ``production`` mode should be used after the features are
-developed and tested. You can switch between modes:
+developed and tested. You can switch between modes. The default one is
+``production``:
 
 .. code-block:: python
 
@@ -460,7 +461,41 @@ See organization XML (link needed) for contributor's organization subfield
 Organization XML
 ----------------
 
-TO DO
+``organization`` is a field used by ``funding`` and ``affiliations``.
+
+It can contain following fields:
+
+.. code-block:: python
+    
+    'organization': {
+        ..
+        'name': 'The Name Of The Organization',
+        ..
+    }
+
+.. code-block:: python
+    
+    'organization': {
+        ..
+        'address': {
+            'city': 'Boston',
+            'region': 'MA',
+            'country': 'USA'
+        },
+        ..
+    }
+
+.. code-block:: python
+
+    'organization': {
+        ..
+        'disambiguated-organization': {
+            'id': 'someid',
+            # 'Ringgold' or 'ISNI'
+            'source': 'ISNI'
+        },
+        ..
+    }
 
 Additional options for pushing
 ------------------------------

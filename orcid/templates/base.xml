@@ -29,18 +29,21 @@
     {% endif %}
     {% if record.organization.address %}
     <address>
-      <city>
-        {{ record.organization.address.city }}
-      </city>
+      {% if record.organization.address.city %}
+        <city>
+          {{ record.organization.address.city }}
+        </city>
+      {% endif %}
       {% if record.organization.address.region %}
         <region>
           {{ record.organization.address.region }}
         </region>
       {% endif %}
-      <country>
-        <!-- two letter code iso -->
-        {{ record.organization.address.country }}
-      </country>
+      {% if record.organization.address.country %}
+        <country>
+          {{ record.organization.address.country }}
+        </country>
+      {% endif %}
     </address>
     {% endif %}
     {% if record.organization.disambiguated %}
