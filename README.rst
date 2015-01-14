@@ -18,9 +18,6 @@ If there are changes in ORCID API, the library might not work till the changes
 will be implemented in this library. Pull requests and submitting issues are
 very welcome.
 
-Usage
-=====
-
 Installation
 ------------
 
@@ -53,7 +50,7 @@ You can do it in this way:
     orcid.set_credentials(organization_orcid, organization_secret, sandbox=True)
 
 Getting information
--------------------
+===================
 
 Note that 
 
@@ -88,7 +85,7 @@ There is also ``get_id`` function, which is equivalent to ``get_info`` with
 ``request_type`` set as ``orcid-bio``.
 
 Sending information
--------------------
+===================
 
 This library won't help you with obtaining correct user's authentication
 token. I believe it is a responsibility of the service you provide to ask a
@@ -105,7 +102,10 @@ this task. Here are few popular choices (the order below is quite random):
 If you want more options or you know more libraries worth recommending, please
 check `this page. <http://oauth.net/code/>`_
 
-Use ``push_data``, to send info:
+Sending/updating data (works/affiliations/funding)
+--------------------------------------------------
+
+Use ``push_data``, to send more data:
 
 .. code-block:: python
 
@@ -498,8 +498,8 @@ It can contain following fields:
         ..
     }
 
-Additional options for pushing
-------------------------------
+Additional options for pushing data
+-----------------------------------
 
 Every work/affiliation/funding can have it's privacy level set by setting
 ``visibility`` field:
@@ -512,6 +512,27 @@ Every work/affiliation/funding can have it's privacy level set by setting
         'visibility': 'private',
     ...
     }]
+
+Sending external id
+-------------------
+
+You can add external ids to author's profile
+
+.. code-clock:: python
+
+    orcid.add_external_id(orcid_id, token, list_with_data)
+
+Each dictionary in ``list_with_data`` should contain four subfields. Below you
+can see an example of such dictionary:
+
+.. code-block::
+
+    {
+        'orcid': '0000-0000-0001-0000',
+        'common_name': 'Scopus Author ID',
+        'reference': '22988279600',
+        'url': 'http://www.scopus.com/authid/detail.url?authorId=22988279600#'
+    }
 
 To do
 -----
