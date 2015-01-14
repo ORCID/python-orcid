@@ -15,8 +15,8 @@ class Config:
 
 Config.SANDBOX = False
 
-Config.ENDPOINT_PUBLIC = None
-Config.ENDPOINT_MEMBER = None
+Config.ENDPOINT_PUBLIC = "http://pub.orcid.org"
+Config.ENDPOINT_MEMBER = "https://api.orcid.org/"
 
 Config.KEY = None
 Config.SECRET = None
@@ -65,9 +65,15 @@ def set_credentials(key, secret, sandbox=False):
     if sandbox:
         Config.SANDBOX_KEY = key
         Config.SANDBOX_SECRET = secret
+        if Config.SANDBOX:
+            Config.KEY = Config.SANDBOX_KEY
+            Config.SECRET = Config.SANDBOX_SECRET
     else:
         Config.MEMBER_KEY = key
         Config.MEMBER_SECRET = secret
+        if not Config.SANDBOX:
+            Config.KEY = Config.MEMBER_KEY
+            Config.SECRET = Config.MEMBER_SECRET
 
 # TOKEN HELPERS ###############################################################
 
@@ -144,8 +150,42 @@ def get_id(orcid_id, scope, response_format='json'):
 # UPDATING DATA ###############################################################
 
 
-def push_data(orcid_id, scope, token, formatted_data, render=True):
+def add_external_id(orcid_id, token, formatted_data, render=True):
+    """Add an external id to the profile."""
+
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    template_dir = '%s/templates/' % current_path
+    environment = Environment(loader=FileSystemLoader(template_dir))
+    template = environment.get_template("id.xml")
+    xml = template.render({'records': formatted_data}) if render \
+        else formatted_data
+
+    url = "%s/%s/orcid-bio/external-identifiers" % (Config.ENDPOINT_MEMBER, orcid_id)
+
+    headers = {'Accept': 'application/vnd.orcid+xml',
+               'Content-Type': 'application/vnd.orcid+xml',
+               'Authorization': 'Bearer ' + token
+               }
+
+    response = requests.post(url, xml, headers=headers)
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError, exc:
+        print exc
+        print response.text
+
+
+def push_data(orcid_id, scope, token, formatted_data, render=True,
+              replace=False):
     """Push new works to the profile.
+
+    The token should have a correct scope:
+    If the data scope is ``works`` -> create
+    If the data scope is ``works`` and you replace the data -> update
+
+    In case of ``works`` and ``replace`` adds works.
+
+    In case of ``works`` and ``replace == False`` replaces all the works.
 
     :scope: Can be one of works,affiliations,funding
     """
@@ -162,10 +202,12 @@ def push_data(orcid_id, scope, token, formatted_data, render=True):
                'Content-Type': 'application/vnd.orcid+xml',
                'Authorization': 'Bearer ' + token
                }
-    print "START"
-    print xml
-    print "END"
-    response = requests.post(url, xml, headers=headers)
+
+    response = None
+    if scope == "works" and not replace:
+        response = requests.post(url, xml, headers=headers)
+    else:
+        response = requests.put(url, xml, headers=headers)
 
     code = response.status_code
     try:

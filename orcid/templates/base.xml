@@ -14,9 +14,7 @@
   xsi:schemaLocation="https://raw.github.com/ORCID/ORCID-Source/master/orcid-model/src/main/resources/orcid-message-1.2.xsd">
   <message-version>1.1</message-version>
   <orcid-profile>
-    <orcid-activities>
-        {% block content %}{% endblock %}
-    </orcid-activities>
+    {% block content %}{% endblock %}
   </orcid-profile>
 </orcid-message>
 
