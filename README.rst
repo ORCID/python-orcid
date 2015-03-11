@@ -3,7 +3,7 @@ python-orcid
 
 Current state
 -------------
-Under development, some features work.
+Under development, few features work.
 
 Authors
 -------
@@ -12,10 +12,8 @@ Mateusz Susik <mateuszsusik@gmail.com>
 
 Notes
 -----
-Many limitations put on this library are caused by limitations in ORCID API.
-The library won't provide back compability if ORCID API won't provide it either.
 If there are changes in ORCID API, the library might not work till the changes
-will be implemented in this library. Pull requests and submitting issues are
+will be implemented by me in this library. Pull requests and submitting issues are
 very welcome.
 
 Installation
