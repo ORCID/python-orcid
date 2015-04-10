@@ -7,231 +7,181 @@ import json
 import os
 import requests
 
-# CONFIGURATION ###############################################################
-
-
-class Config:
-    pass
-
-Config.SANDBOX = False
-
-Config.ENDPOINT_PUBLIC = "http://pub.orcid.org"
-Config.ENDPOINT_MEMBER = "https://api.orcid.org"
-
-Config.MEMBER_KEY = None
-Config.MEMBER_SECRET = None
-Config.SANDBOX_KEY = None
-Config.SANDBOX_SECRET = None
-Config.KEY = None
-Config.SECRET = None
-
 VERSION = "/v2.0_rc1"
 
 
-def set_endpoint(sandbox=False):
-    """Set endpoint.
+class PublicAPI:
 
-    Change key and secret to appropiate ones. This function is useful if you
-    want to test your code using sandbox.
+    """Public API."""
 
-    Parameters
-    ----------
-    :param sandbox: boolean
-        If true, sandbox is used. Otherwise, production endpoint is used.
-    """
-    Config.SANDBOX = sandbox
+    def __init__(self, sandbox=False):
+        """Initialize public API.
 
-    if sandbox:
-        Config.ENDPOINT_MEMBER = "http://api.sandbox.orcid.org"
-        Config.ENDPOINT_PUBLIC = "http://pub.sandbox.orcid.org"
-        Config.KEY = Config.SANDBOX_KEY
-        Config.SECRET = Config.SANDBOX_SECRET
-    else:
-        Config.ENDPOINT_MEMBER = "https://api.orcid.org"
-        Config.ENDPOINT_PUBLIC = "http://pub.orcid.org"
-        Config.KEY = Config.MEMBER_KEY
-        Config.SECRET = Config.MEMBER_SECRET
+        Parameters
+        ----------
+        :param sandbox: boolean
+            Should the sandbox be used. False (default) indicates production
+            mode.
+        """
+        if sandbox:
+            self._endpoint_public = "http://pub.sandbox.orcid.org"
+        else:
+            self._endpoint_public = "http://pub.orcid.org"
 
+    def read_record_public(self, orcid_id, request_type,
+                           response_format='json', id=None):
+        """Get the public info about the researcher.
 
-def set_credentials(key, secret, sandbox=False):
-    """Set credentials.
+        Parameters
+        ----------
+        :param orcid_id: string
+            Id of the queried author
+        :param request_type: string
+            One of 'activities', 'education', 'employment', 'funding',
+            'peer-review', 'work'
+        :param response_format: string
+            One of json, xml.
+        :param id: string
+            The id of the queried work. Must be given if 'request_type' is not
+            'activities'.
+        """
+        return self._get_info(orcid_id, self._get_public_info, request_type,
+                              response_format, id)
 
-    You can specify sandbox parameter if you want to set sandox credentials.
+    def _get_info(self, orcid_id, function, request_type,
+                  response_format='json', id=None):
+        if request_type != "activities" and not id:
+            raise ValueError("""In order to fetch specific record, please specify
+                                the 'id' argument.""")
+        elif request_type == "activities" and id:
+            raise ValueError("""In order to fetch activities summary, the 'id'
+                                argument is redundant.""")
 
-    Parameters
-    ----------
-    :param key: string
-        The institution's key
-    :param secret: string
-        The institution's secret
-    :param sandbox: bool
-        If true, sandbox is used. Otherwise, production endpoint is used.
-    """
-    if sandbox:
-        Config.SANDBOX_KEY = key
-        Config.SANDBOX_SECRET = secret
-        if Config.SANDBOX:
-            Config.KEY = Config.SANDBOX_KEY
-            Config.SECRET = Config.SANDBOX_SECRET
-    else:
-        Config.MEMBER_KEY = key
-        Config.MEMBER_SECRET = secret
-        if not Config.SANDBOX:
-            Config.KEY = Config.MEMBER_KEY
-            Config.SECRET = Config.MEMBER_SECRET
+        response = function(orcid_id, request_type, response_format, id)
 
-# TOKEN HELPERS ###############################################################
+        code = response.status_code
 
-
-def _get_access_token_from_orcid(scope):
-    payload = {'client_id': Config.KEY,
-               'client_secret': Config.SECRET,
-               'scope': scope,
-               'grant_type': 'client_credentials'
-               }
-
-    request_url = "%s/oauth/token" % Config.ENDPOINT_MEMBER
-    headers = {'Accept': 'application/json'}
-    response = requests.post(request_url, data=payload, headers=headers)
-    code = response.status_code
-
-    res = None
-    if code == requests.codes.ok:
-        res = json.loads(response.content)['access_token']
-    return res
-
-# GETTING INFORMATION #########################################################
-
-
-def _get_member_info(orcid_id, request_type, response_format, id):
-    access_token = _get_access_token_from_orcid('/read-public')
-    request_url = '%s/%s/%s' % (Config.ENDPOINT_MEMBER + VERSION,
-                                orcid_id, request_type)
-    if id:
-        request_url += '/%s' % id
-    headers = {'Accept': 'application/orcid+%s' % response_format,
-               'Authorization': 'Bearer %s' % access_token}
-    return requests.get(request_url, headers=headers)
-
-
-def _get_public_info(orcid_id, request_type, response_format, id):
-
-    request_url = '%s/%s/%s' % (Config.ENDPOINT_PUBLIC + VERSION,
-                                orcid_id, request_type)
-    if id:
-        request_url += '/%s' % id
-    headers = {'Accept': 'application/orcid+%s' % response_format}
-    return requests.get(request_url, headers=headers)
-
-
-def get_info(orcid_id, scope, request_type, response_format='json',
-             id=None):
-    """Get the researcher's ORCID.
-
-    Parameters
-    ----------
-    :param orcid_id: string
-        Id of the queried author
-    :param scope: string
-        'public' or 'member'
-    :param request_type: string
-        One of 'activities', 'education', 'employment', 'work', 'funding'
-    :param response_format: one of json, xml.
-    """
-    if request_type != "activities" and not id:
-        raise ValueError("""In order to fetch specific record, please specify
-                            the 'id' argument.""")
-    elif request_type == "activities" and id:
-        raise ValueError("""In order to fetch activities summary, the 'id'
-                            argument is redundant.""")
-
-    if scope == "member":
-        response = _get_member_info(orcid_id, request_type, response_format,
-                                    id)
-    elif scope == "public":
-        response = _get_public_info(orcid_id, request_type, response_format,
-                                    id)
-    else:
-        raise ValueError("""Wrong scope.""")
-
-    code = response.status_code
-
-    response.raise_for_status()
-
-    if response_format == "json":
-        return json.loads(response.content)
-    elif response_format == "xml":
-        return etree.fromstring(response.content)
-
-# UPDATING DATA ###############################################################
-
-
-def add_external_id(orcid_id, token, formatted_data, render=True):
-    """Add an external id to the profile."""
-
-    current_path = os.path.dirname(os.path.abspath(__file__))
-    template_dir = '%s/templates/' % current_path
-    environment = Environment(loader=FileSystemLoader(template_dir))
-    template = environment.get_template("id.xml")
-    xml = template.render({'records': formatted_data}) if render \
-        else formatted_data
-
-    url = "%s/%s/orcid-bio/external-identifiers" % (Config.ENDPOINT_MEMBER, orcid_id)
-
-    headers = {'Accept': 'application/vnd.orcid+xml',
-               'Content-Type': 'application/vnd.orcid+xml',
-               'Authorization': 'Bearer ' + token
-               }
-
-    response = requests.post(url, xml, headers=headers)
-    try:
         response.raise_for_status()
-    except requests.exceptions.HTTPError, exc:
-        print exc
-        print response.text
+
+        if response_format == "json":
+            return json.loads(response.content)
+        elif response_format == "xml":
+            return etree.fromstring(response.content)
+
+    def _get_public_info(self, orcid_id, request_type, response_format, id):
+        request_url = '%s/%s/%s' % (self._endpoint_public + VERSION,
+                                    orcid_id, request_type)
+        if id:
+            request_url += '/%s' % id
+        headers = {'Accept': 'application/orcid+%s' % response_format}
+        return requests.get(request_url, headers=headers)
 
 
-def push_data(orcid_id, scope, token, formatted_data, render=True,
-              replace=False):
-    """Push new works to the profile.
+class MemberAPI(PublicAPI):
 
-    The token should have a correct scope:
-    If the data scope is ``works`` -> create
-    If the data scope is ``works`` and you replace the data -> update
+    """Member API."""
 
-    In case of ``works`` and ``replace`` adds works.
+    def __init__(self, institution_key, institution_secret, sandbox=False):
+        """Initialize member API.
 
-    In case of ``works`` and ``replace == False`` replaces all the works.
+        Parameters
+        ----------
+        :param sandbox: boolean
+            Should the sandbox be used. False (default) indicates production
+            mode.
+        """
+        self._key = institution_key
+        self._secret = institution_secret
+        if sandbox:
+            self._endpoint_member = "http://api.sandbox.orcid.org"
+        else:
+            self._endpoint_member = "https://api.orcid.org"
+        PublicAPI.__init__(self, sandbox)
 
-    :scope: Can be one of works,affiliations,funding
-    """
-    url = "%s/%s/orcid-%s" % (Config.ENDPOINT_MEMBER, orcid_id, scope)
+    def add_record(self, orcid_id, token, request_type, data=None, xml=None):
+        self._update_activities(orcid_id, token, requests.post, request_type,
+                                data, xml)
 
-    current_path = os.path.dirname(os.path.abspath(__file__))
-    template_dir = '%s/templates/' % current_path
-    environment = Environment(loader=FileSystemLoader(template_dir))
-    template = environment.get_template("%s.xml" % scope)
-    xml = template.render({'records': formatted_data}) if render \
-        else formatted_data
+    def read_record_member(self, orcid_id, request_type,
+                           response_format='json', id=None):
+        """Get the member info about the researcher.
 
-    headers = {'Accept': 'application/vnd.orcid+xml',
-               'Content-Type': 'application/vnd.orcid+xml',
-               'Authorization': 'Bearer ' + token
-               }
+        Parameters
+        ----------
+        :param orcid_id: string
+            Id of the queried author
+        :param request_type: string
+            One of 'activities', 'education', 'employment', 'funding',
+            'peer-review', 'work'
+        :param response_format: string
+            One of json, xml.
+        :param id: string
+            The id of the queried work. Must be given if 'request_type' is not
+            'activities'.
+        """
+        return self._get_info(orcid_id, self._get_member_info, request_type,
+                              response_format, id)
 
-    response = None
-    if scope == "works" and not replace:
-        response = requests.post(url, xml, headers=headers)
-    else:
-        response = requests.put(url, xml, headers=headers)
+    def update_record(self, orcid_id, token, request_type, id, data=None,
+                      xml=None):
+        self._update_activities(orcid_id, token, requests.put, request_type,
+                                data, xml, id)
 
-    code = response.status_code
-    try:
-        response.raise_for_status()
-    except requests.exceptions.HTTPError, exc:
-        print exc
-        print response.text
+    def _get_access_token_from_orcid(self, scope):
+        payload = {'client_id': self._key,
+                   'client_secret': self._secret,
+                   'scope': scope,
+                   'grant_type': 'client_credentials'
+                   }
 
-# INITIALIZATION ##############################################################
+        request_url = "%s/oauth/token" % self._endpoint_member
+        headers = {'Accept': 'application/json'}
+        response = requests.post(request_url, data=payload, headers=headers)
+        code = response.status_code
 
-set_endpoint()
+        res = None
+        if code == requests.codes.ok:
+            res = json.loads(response.content)['access_token']
+        return res
+
+    def _get_member_info(self, orcid_id, request_type, response_format, id):
+        access_token = self. \
+            _get_access_token_from_orcid('/activities/read-limited')
+        request_url = '%s/%s/%s' % (self._endpoint_member + VERSION,
+                                    orcid_id, request_type)
+        if id:
+            request_url += '/%s' % id
+        headers = {'Accept': 'application/orcid+%s' % response_format,
+                   'Authorization': 'Bearer %s' % access_token}
+        return requests.get(request_url, headers=headers)
+
+    def _update_activities(self, orcid_id, token, method, request_type, data,
+                           xml, id=None):
+        url = "%s/%s/%s" % (self._endpoint_member + VERSION, orcid_id,
+                            request_type)
+        if id:
+            url += ('/%s' % id)
+            if not xml:
+                data['put_code'] = id
+
+        if not xml:
+            current_path = os.path.dirname(os.path.abspath(__file__))
+            template_dir = '%s/templates/' % current_path
+            environment = Environment(loader=FileSystemLoader(template_dir))
+            template = environment.get_template("%s.xml" % request_type)
+            xml = template.render({'record': data})
+
+        headers = {'Accept': 'application/vnd.orcid+xml',
+                   'Content-Type': 'application/vnd.orcid+xml',
+                   'Authorization': 'Bearer ' + token}
+
+        response = method(url, xml, headers=headers)
+
+        code = response.status_code
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError, exc:
+            print exc
+            print response.text
+
+        return True

@@ -1,0 +1,73 @@
+{%- extends "base.xml" -%}
+{%- block content -%}
+<work:work
+  xmlns:common="http://www.orcid.org/ns/common" xmlns:work="http://www.orcid.org/ns/work"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.orcid.org/ns/work ../work-2.0_rc1.xsd "
+  {% if record.visibility %}
+  visibility="{{ record.visibility }}"
+  {% endif %}
+  {% if record.put_code %}
+  put-code="{{ record.put_code }}"
+  {% endif %}>
+  <work:title>
+    <common:title>{{ record.title }}</common:title>
+    <common:subtitle>{{ record.subtitle }}</common:subtitle>
+    {%- for translation in record.translated_titles -%}
+    <common:translated-title language-code="{{ translation.language-code }}">
+      {{ translation.translated_title }}
+    </common:translated-title>
+    {%- endfor -%}
+  </work:title>
+  <work:journal-title>{{ record.journal_title }}</work:journal-title>
+  <work:short-description>{{ record.short_description }}</work:short-description>
+  <work:citation>
+    <work:citation-type>{{ record.citation_type }}</work:citation-type>
+    <work:citation>{{ record.citation }}</work:citation>
+  </work:citation>
+  <work:type>{{ record.type }}</work:type>
+  {%- if record.publication_data -%}
+  <common:publication-date>
+    {{ date_xml(record.publication_date) }}
+  </common:publication-date>
+  {%- endif -%}
+  <work:external-identifiers>
+    {%- for external_identifier in record.external_identifiers -%}
+    <work:work-external-identifier>
+      <work:work-external-identifier-type>
+      {{ external_identifier.type }}
+      </work:work-external-identifier-type>
+      <work:work-external-identifier-id>
+      {{ external_identifier.id }}
+      </work:work-external-identifier-id>
+    </work:work-external-identifier>
+    {%- endfor -%}
+  </work:external-identifiers>
+  <work:url>{{ record.url }}</work:url>
+  <work:contributors>
+    {%- for contributor in record.contributors -%}
+    <work:contributor>
+      <common:contributor-orcid>
+        {{ contributor_orcid(contributor.orcid) }}
+      </common:contributor-orcid>
+      <work:credit-name visibility={{ contributor.credit_name.visibility }}>
+        {{ contributor.credit_name.name }}
+      </work:credit-name>
+      <work:contributor-email>{{ contributor.email }}</work:contributor-email>
+      <work:contributor-attributes>
+        <work:contributor-sequence>
+          {{ contributor.sequence }}
+        </work:contributor-sequence>
+        <work:contributor-role>{{ contributor.role }}</work:contributor-role>
+      </work:contributor-attributes>
+    </work:contributor>
+    {%- endfor -%}
+  </work:contributors>
+  {%- if record.language_code -%}
+  {{ language_code(record.language_code) }}
+  {%- endif -%}
+  {%- if record.country -%}
+  {{ country(record.country) }}
+  {%- endif -%}
+</work:work>
+{%- endblock -%}

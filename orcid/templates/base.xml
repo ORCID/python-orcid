@@ -1,24 +1,33 @@
-{% macro date_xml(name, part) %}
-<{{ name }}>
-  <year>{{ part.year }}</year>
-  {% if part.month %}
-  <month>{{ part.month }}</month>
-  {% if part.day %}
-  <day>{{ part.day }}</day>
-  {% endif %}
-  {% endif %}
-</{{ name }}>
-{% endmacro %}<?xml version="1.0" encoding="UTF-8"?>
-<orcid-message xmlns="http://www.orcid.org/ns/orcid"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="https://raw.github.com/ORCID/ORCID-Source/master/orcid-model/src/main/resources/orcid-message-1.2.xsd">
-  <message-version>1.1</message-version>
-  <orcid-profile>
-    {% block content %}{% endblock %}
-  </orcid-profile>
-</orcid-message>
+{%- macro date_xml(part) -%}
+<common:year>{{ part.year }}</common:year>
+{%- if part.month -%}
+<common:month>{{ part.month }}</common:month>
+{%- if part.day -%}
+<common:day>{{ part.day }}</common:day>
+{%- endif -%}
+{%- endif -%}
+{%- endmacro -%}
 
-{% macro organization(record) %}
+{%- macro contributor_orcid(orcid) -%}
+<common:uri>http://orcid.org/{{ orcid }}</common:uri>
+<common:path>{{ orcid }}</common:path>
+<common:host>orcid.org</common:host>
+{%- endmacro -%}
+
+{%- macro language_code(code) -%}
+<common:language-code>{{ code }}</common:language-code>
+{%- endmacro -%}
+
+{%- macro country(part) -%}
+<common:country visibility="{{ part.visibility }}">
+  {{ part.code }}
+</common:country>
+{%- endmacro -%}
+
+<?xml version="1.0" encoding="UTF-8"?>
+{%- block content -%}{%- endblock -%}
+
+{%- macro organization(record) -%}
 <organization>
     {% if record.organization.name %}
     <name>
@@ -55,5 +64,5 @@
     </disambiguated-organization>
     {% endif %}
 </organization>
-{% endmacro %}
+{%- endmacro -%}
 
