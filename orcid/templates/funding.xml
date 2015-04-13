@@ -1,102 +1,67 @@
-
-{% extends "base.xml" %}
-
-{% block content %}
-<orcid-activities>
-    <funding-list>
-        {% for record in records %}
-        <funding>
-            <type>
-                {{ record.type }}
-            </type>
-            {% if record.title %}
-                <funding-title>
-                    <title>
-                        {{ record.title }}
-                    </title>
-                </funding-title>
-            {% endif %}
-            {% if record.description %}
-                <short-description>
-                    {{ record.description }}
-                </short-description>
-            {% endif %}
-            <amount currency-code="{{ record.amount.currency }}">
-              {{ record.amount.value }}
-            </amount>
-            {% if record.url %}
-                <url>
-                    {{ record.url }}
-                </url>
-            {% endif %}
-            {% if record.start_date %}
-                {{ date_xml("start-date", record.start_date) }}
-            {% endif %}
-            {% if record.end_date %}
-                {{ date_xml("end-date", record.end_date) }}
-            {% endif %}
-            {% if record.external_ids %}
-            <funding-external-identifiers>
-                {% for external_id in record.external_ids %}
-                    <funding-external-identifier>
-                        <funding-external-identifier-type>
-                            {{ external_id.type }}
-                        </funding-external-identifier-type>
-                        <funding-external-identifier-value>
-                            {{ external_id.value }}
-                        </funding-external-identifier-value>
-                        {% if external_id.url %}
-                            <funding-external-identifier-url>
-                                {{ external_id.url }}
-                            </funding-external-identifier-url>
-                        {% endif %}
-                    </funding-external-identifier>
-                {% endfor %}
-            </funding-external-identifiers>
-            {% endif %}
-            {% if record.contributors %}
-            <funding-contributors>
-                {% for contributor in record.contributors %}
-                <funding-contributor>
-                    {% if contributor.orcid %}
-                        <contributor-orcid>
-                            <uri>
-                                {{ contributor.orcid.uri }}
-                            </uri>
-                            <path>
-                                {{ contributor.orcid.path }}
-                            </path>
-                            <host>
-                                {{ contributor.orcid.host }}
-                            </host>
-                        </contributor-orcid>
-                    {% endif %}
-                    {% if contributor.name %}
-                        <credit-name>
-                            {{ contributor.name }}
-                        </credit-name>
-                    {% endif %}
-                    {% if contributor.email %}
-                        <contributor-email>
-                            {{ contributor.email }}
-                        </contributor-email>
-                    {% endif %}
-                    {% if contributor.attributes %}
-                        <funding-contributor-attributes>
-                            <funding-contributor-role>
-                                {{ contributor.attributes.role }}
-                            </funding-contributor-role>
-                        </funding-contributor-attributes>
-                    {% endif %}
-                    {% if contributor.organization %}
-                      {{ organization(contributor) }}
-                    {% endif %}
-                </funding-contributor>
-                {% endfor %}
-            </funding-contributors>
-            {% endif %}
-        </funding>
-        {% endfor %}
-    </funding-list>
-</orcid-activities>
-{% endblock %}
+{%- extends "base.xml" -%}
+{%- block content -%}
+<funding:funding
+  xmlns:common="http://www.orcid.org/ns/common" xmlns:funding="http://www.orcid.org/ns/funding"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.orcid.org/ns/funding ../funding-2.0_rc1.xsd "
+  {% if record.visibility %}
+  visibility="{{ record.visibility }}"
+  {% endif %}
+  {% if record.put_code %}
+  put-code="{{ record.put_code }}"
+  {% endif %}>
+    <funding:type>{{ record.type }}</funding:type>
+    {%- if record.organization_defined_type -%}
+    <funding:organization-defined-type>{{ record.organization_defined_type }}</funding:organization-defined-type>
+    {%- endif -%}
+    <funding:title>
+        <common:title>{{ record.title }}</common:title>
+        {%- for translated_title in record.translated_titles -%}
+        <common:translated-title language-code="{{ translated_title.code }}">{{ translated_title.title }}</common:translated-title>
+        {%- endfor -%}
+    </funding:title>
+    {%- if record.short_description -%}
+    <funding:short-description>{{ record.short_description }}</funding:short-description>
+    {%- endif -%}
+    {%- if record.amount -%}
+    <funding:amount currency-code="{{ record.amount.currency_code }}">{{ record.amount.amount }}</funding:amount>
+    {%- endif -%}
+    {%- if record.url -%}
+    <funding:url>{{ record.url }}</funding:url>
+    {%- endif -%}
+    {%- if record.start_date -%}
+    <common:start-date>
+        {{ date_xml(record.start_date) }}
+    </common:start-date>
+    {%- endif -%}
+    {%- if record.end_date -%}
+    <common:end-date>
+        {{ date_xml(record.end_date) }}
+    </common:end-date>
+    {%- endif -%}
+    <funding:external-identifiers>
+        {%- for externalIdentifier in record.external_identifiers -%}
+        <funding:externalIdentifier>
+            <funding:external-identifier-type>{{ externalIdentifier.type }}</funding:external-identifier-type>
+            <funding:external-identifier-value>{{ externalIdentifier.value }}</funding:external-identifier-value>
+            <funding:external-identifier-url>{{ externalIdentifier.url }}</funding:external-identifier-url>
+        </funding:externalIdentifier>
+        {%- endfor -%}
+    </funding:external-identifiers>
+    <funding:contributors>
+        {%- for contributor in record.contributors -%}
+        <funding:contributor>
+            {{ contributor_orcid(contributor.orcid) }}
+            <funding:credit-name visibility="visibility={{ contributor.credit_name.visibility }}">{{ contributor.credit_name }}</funding:credit-name>
+            <funding:contributor-email>{{ contributor.email }}</funding:contributor-email>
+            <funding:contributor-attributes>
+                <funding:contributor-role>{{ contributor.role }}</funding:contributor-role>
+            </funding:contributor-attributes>
+        </funding:contributor>
+        {%- endfor -%}
+    </funding:contributors>
+    <funding:organization>
+        {{ organization(record.organization) }}
+    </funding:organization>
+</funding:funding>
+{%- endblock -%}

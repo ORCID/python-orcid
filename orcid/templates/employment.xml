@@ -1,0 +1,33 @@
+{%- extends "base.xml" -%}
+{%- block content -%}
+<affiliation:employment
+  xmlns:affiliation="http://www.orcid.org/ns/employment" xmlns:common="http://www.orcid.org/ns/common"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.orcid.org/ns/employment ../employment-2.0_rc1.xsd "
+  {% if record.visibility %}
+  visibility="{{ record.visibility }}"
+  {% endif %}
+  {% if record.put_code %}
+  put-code="{{ record.put_code }}"
+  {% endif %}>
+  {%- if record.department_name -%}
+  <affiliation:department-name>{{ record.department_name }}</affiliation:department-name>
+  {%- endif -%}
+  {%- if record.role_title -%}
+  <affiliation:role-title>{{ record.role_title }}</affiliation:role-title>
+  {%- endif -%}
+  {%- if record.start_date -%}
+  <common:start-date>
+    {{ date_xml(record.start_date) }}
+  </common:start-date>
+  {%- endif -%}
+  {%- if record.end_date -%}
+  <common:end-date>
+    {{ date_xml(record.end_date) }}
+  </common:end-date>
+  {%- endif -%}
+  <affiliation:organization>
+    {{ organization(record.organization) }}
+  </affiliation:organization>
+</affiliation:employment>
+{%- endblock -%}

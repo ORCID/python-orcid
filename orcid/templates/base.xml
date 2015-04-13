@@ -19,50 +19,27 @@
 {%- endmacro -%}
 
 {%- macro country(part) -%}
-<common:country visibility="{{ part.visibility }}">
-  {{ part.code }}
-</common:country>
+<common:country visibility="{{ part.visibility }}">{{ part.code }}</common:country>
+{%- endmacro -%}
+
+{%- macro organization(subrecord) -%}
+<common:name>{{ subrecord.name }}</common:name>
+<common:address>
+    <common:city>{{ subrecord.city }}</common:city>
+    {%- if subrecord.region -%}
+    <common:region>{{ subrecord.region }}</common:region>
+    {%- endif -%}
+    <common:country>{{ subrecord.country }}</common:country>
+</common:address>
+{%- if subrecord.disambiguated_organization -%}
+<common:disambiguated-organization>
+  <common:disambiguated-organization-identifier>{{ subrecord.disambiguatd_organization.identifier }}</common:disambiguated-organization-identifier>
+  <common:disambiguation-source>{{ subrecord.disambiguatd_organization.disambiguation_source }}</common:disambiguation-source>
+</common:disambiguated-organization>
+{%- endif -%}
 {%- endmacro -%}
 
 <?xml version="1.0" encoding="UTF-8"?>
 {%- block content -%}{%- endblock -%}
 
-{%- macro organization(record) -%}
-<organization>
-    {% if record.organization.name %}
-    <name>
-      {{ record.organization.name }}
-    </name>
-    {% endif %}
-    {% if record.organization.address %}
-    <address>
-      {% if record.organization.address.city %}
-        <city>
-          {{ record.organization.address.city }}
-        </city>
-      {% endif %}
-      {% if record.organization.address.region %}
-        <region>
-          {{ record.organization.address.region }}
-        </region>
-      {% endif %}
-      {% if record.organization.address.country %}
-        <country>
-          {{ record.organization.address.country }}
-        </country>
-      {% endif %}
-    </address>
-    {% endif %}
-    {% if record.organization.disambiguated %}
-    <disambiguated-organization>
-      <disambiguated-organization-identifier>
-        {{ record.organization.disambiguated.id }}
-      </disambiguated-organization-identifier>
-      <disambiguation-source>
-        {{ record.organization.disambiguated.source }}
-      </disambiguation-source>
-    </disambiguated-organization>
-    {% endif %}
-</organization>
-{%- endmacro -%}
 

@@ -122,6 +122,10 @@ class MemberAPI(PublicAPI):
         return self._get_info(orcid_id, self._get_member_info, request_type,
                               response_format, id)
 
+    def remove_record(self, orcid_id, token, request_type, id):
+        self._update_activities(orcid_id, token, requests.delete, request_type,
+                                None, None, id)
+
     def update_record(self, orcid_id, token, request_type, id, data=None,
                       xml=None):
         self._update_activities(orcid_id, token, requests.put, request_type,
@@ -161,10 +165,10 @@ class MemberAPI(PublicAPI):
                             request_type)
         if id:
             url += ('/%s' % id)
-            if not xml:
+            if not xml and method != requests.delete:
                 data['put_code'] = id
 
-        if not xml:
+        if not xml and method != requests.delete:
             current_path = os.path.dirname(os.path.abspath(__file__))
             template_dir = '%s/templates/' % current_path
             environment = Environment(loader=FileSystemLoader(template_dir))
@@ -175,7 +179,11 @@ class MemberAPI(PublicAPI):
                    'Content-Type': 'application/vnd.orcid+xml',
                    'Authorization': 'Bearer ' + token}
 
-        response = method(url, xml, headers=headers)
+        if method == requests.delete:
+            response = method(url, headers=headers)
+        else:
+            print xml
+            response = method(url, xml, headers=headers)
 
         code = response.status_code
         try:
@@ -183,5 +191,3 @@ class MemberAPI(PublicAPI):
         except requests.exceptions.HTTPError, exc:
             print exc
             print response.text
-
-        return True

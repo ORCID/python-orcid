@@ -1,0 +1,33 @@
+{%- extends "base.xml" -%}
+{%- block content -%}
+<education:education
+  xmlns:common="http://www.orcid.org/ns/common" xmlns:education="http://www.orcid.org/ns/education"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.orcid.org/ns/education ../education-2.0_rc1.xsd "
+  {% if record.visibility %}
+  visibility="{{ record.visibility }}"
+  {% endif %}
+  {% if record.put_code %}
+  put-code="{{ record.put_code }}"
+  {% endif %}>
+  {%- if record.department_name -%}
+  <education:department-name>{{ record.department_name }}</education:department-name>
+  {%- endif -%}
+  {%- if record.role_title -%}
+  <education:role-title>{{ record.role_title }}</education:role-title>
+  {%- endif -%}
+  {%- if record.start_date -%}
+  <common:start-date>
+    {{ date_xml(record.start_date) }}
+  </common:start-date>
+  {%- endif -%}
+  {%- if record.end_date -%}
+  <common:end-date>
+    {{ date_xml(record.end_date) }}
+  </common:end-date>
+  {%- endif -%}
+  <education:organization>
+    {{ organization(record.organization) }}
+  </education:organization>
+</education:education>
+{%- endblock -%}

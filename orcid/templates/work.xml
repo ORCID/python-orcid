@@ -26,7 +26,7 @@
     <work:citation>{{ record.citation }}</work:citation>
   </work:citation>
   <work:type>{{ record.type }}</work:type>
-  {%- if record.publication_data -%}
+  {%- if record.publication_date -%}
   <common:publication-date>
     {{ date_xml(record.publication_date) }}
   </common:publication-date>
@@ -50,14 +50,10 @@
       <common:contributor-orcid>
         {{ contributor_orcid(contributor.orcid) }}
       </common:contributor-orcid>
-      <work:credit-name visibility={{ contributor.credit_name.visibility }}>
-        {{ contributor.credit_name.name }}
-      </work:credit-name>
+      <work:credit-name visibility={{ contributor.credit_name.visibility }}>{{ contributor.credit_name.name }}</work:credit-name>
       <work:contributor-email>{{ contributor.email }}</work:contributor-email>
       <work:contributor-attributes>
-        <work:contributor-sequence>
-          {{ contributor.sequence }}
-        </work:contributor-sequence>
+        <work:contributor-sequence>{{ contributor.sequence }}</work:contributor-sequence>
         <work:contributor-role>{{ contributor.role }}</work:contributor-role>
       </work:contributor-attributes>
     </work:contributor>

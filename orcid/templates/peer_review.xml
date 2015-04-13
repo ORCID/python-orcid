@@ -1,0 +1,48 @@
+{%- extends "base.xml" -%} 
+{%- block content -%}
+<peer-review:peer-review
+  xmlns:common="http://www.orcid.org/ns/common"
+  xmlns:peer-review="http://www.orcid.org/ns/peer-review" xmlns:work="http://www.orcid.org/ns/work"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.orcid.org/ns/peer-review ../peer-review-2.0_rc1.xsd "
+  {% if record.visibility %}
+  visibility="{{ record.visibility }}"
+  {% endif %}
+  {% if record.put_code %}
+  put-code="{{ record.put_code }}"
+  {% endif %}>
+    <peer-review:role>{{ record.role }}</peer-review:role>
+    <peer-review:organization>
+        {{ organization(record.organization) }}
+    </peer-review:organization>
+    <peer-review:external-identifiers>
+        <work:work-external-identifier>
+            <work:external-identifier-type>agr</work:external-identifier-type>
+            <work:external-identifier-id>work:external-identifier-id</work:external-identifier-id>
+        </work:work-external-identifier>
+    </peer-review:external-identifiers>
+    <peer-review:url>{{ record.url }}</peer-review:url>
+    <peer-review:type>{{ record.type }}</peer-review:type>
+    <peer-review:completion-date>
+        {{ date_xml(record.completion_date) }}
+    </peer-review:completion-date>
+    <peer-review:subject>
+        <peer-review:external-identifiers>
+            <work:work-external-identifier>
+                <work:external-identifier-type>agr</work:external-identifier-type>
+                <work:external-identifier-id>work:external-identifier-id</work:external-identifier-id>
+            </work:work-external-identifier>
+        </peer-review:external-identifiers>
+        <peer-review:type>{{ record.subject.type }}</peer-review:type>
+        <peer-review:journal-title>{{ record.subject.journal_title }}</peer-review:journal-title>
+        <peer-review:title>
+            <common:title>{{ record.subject.title }}</common:title>
+            <common:subtitle>{{ record.subject.subtitle }}</common:subtitle>
+            {%- for translation in record.subject.translated_titles -%}
+            <common:translated-title language-code="{{ translation.language-code }}">{{ translation.translated_title }}</common:translated-title>
+            {%- endfor -%}
+        </peer-review:title>
+        <peer-review:url>{{ record.subject.url }}</peer-review:url>
+    </peer-review:subject>
+</peer-review:peer-review>
+{%- endblock -%}
