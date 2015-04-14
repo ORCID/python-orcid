@@ -3,7 +3,8 @@ python-orcid
 
 Current state
 -------------
-Under development, few features work.
+
+Under development, few features work. Readme is outdated.
 
 Authors
 -------
@@ -13,77 +14,59 @@ Mateusz Susik <mateuszsusik@gmail.com>
 Notes
 -----
 If there are changes in ORCID API, the library might not work till the changes
-will be implemented by me in this library. Pull requests and submitting issues are
-very welcome.
+will be implemented by me in this library. Pull requests and submitting issues
+are very welcome.
 
 Installation
 ------------
 
 TODO, will be released on PyPI.
 
-Configuration
--------------
+Introduction
+------------
 
-Before you use this library, you might need to configure it. Configuration
-should be done every time you import the library.
-There are two modes: ``sandbox`` and ``production``. They require different
-credentials. The ``sandbox`` mode should be used when you are developing new
-features. The ``production`` mode should be used after the features are
-developed and tested. You can switch between modes. The default one is
-``production``:
+`ORCID <http://orcid.org/>`_ is an open, non-profit, community-based effort to
+provide a registry of unique researcher identifiers and a transparent method of
+linking research activities and outputs to these identifiers. ORCID is unique
+in its ability to reach across disciplines, research sectors, and national
+boundaries and its cooperation with other identifier systems.
 
-.. code-block:: python
+ORCID offers an API (Application Programming Interface) that allows your
+systems and applications to connect to the ORCID registry, including reading
+from and writing to ORCID records.
 
+There are two types of API available for developers.
+
+PublicAPI
+=========
+
+The public API allows the developers to use the search engine and read author
+records. It is available for everybody.
+
+``` python
     import orcid
-    orcid.set_endpoint(sandbox=True)
-    # The default value is False
-    orcid.set_endpoint()
+    api = orcid.PublicAPI(sandbox=True)
+    # api.search (to do)
+    # Get the summary
+    summary = api.read_record_public('0000-0001-1111-1111', 'activities')
+```
 
-Some of the features of this library (namely ``get_info`` and ``get_id``
-functions wuth ``member`` scope) require organization credentials to be set.
-You can do it in this way:
+Every record in the `summary` dictionary should contain _put-codes_. Using
+them, it is possible to query the specific record for details. Type of the
+record and the put-code need to be provided.
 
-.. code-block:: python
+``` python
+    # Get the specific record
+    # Available record types are:
+    # 'education', 'employment', 'funding', 'peer-review', 'work'
+    work = api.read_record_public('0000-0001-1111-1111', 'work', '1111')
+```
 
-    orcid.set_credentials(organization_orcid, organization_secret, sandbox=True)
+MemberAPI
+=========
 
-Getting information
-===================
-
-Note that 
-
-To get info about a researcher, you need to know his ORCID. Then, using this
-library you can do:
-
-.. code-block:: python
-
-    orcid.get_info(orcid_id, scope, request_type)
-
-
-``scope`` can be one of: ``public`` or ``member``. To use ``member`` scope, you
-need to provide valid values in the configuration. If you are using ``member``
-scope, the library takes care of authenticating you in ORCID using the values
-from the configuration provided by you. So far, it is not possible to
-use any of the scopes in the ``sandbox`` mode.
-
-``request_type`` can be one of ``orcid-bio``, ``orcid-profile``,
-``orcid-works``.
-
-Every time you fetch the data, you can specify response format. Allowed values
-are: ``json`` and ``xml``.
-
-In case of ``json``, the library returns a result of ``json.loads``.
-In case of ``xml``, the library returns a result of ``etree.fromstring``.
-
-.. code-block:: python
-
-    orcid.get_info(orcid_id, `member`, 'orcid-bio', response_format='json')
-
-There is also ``get_id`` function, which is equivalent to ``get_info`` with
-``request_type`` set as ``orcid-bio``.
-
-Sending information
-===================
+Token
+-----
 
 This library won't help you with obtaining correct user's authentication
 token. I believe it is a responsibility of the service you provide to ask a
@@ -100,8 +83,8 @@ this task. Here are few popular choices (the order below is quite random):
 If you want more options or you know more libraries worth recommending, please
 check `this page. <http://oauth.net/code/>`_
 
-Sending/updating data (works/affiliations/funding)
---------------------------------------------------
+Adding/updating/removing records
+--------------------------------
 
 Use ``push_data``, to send more data:
 
@@ -130,8 +113,8 @@ Note that the majority of fields and subfields can be skipped.
 When in doubt, please refer to the ORCID documetation:
 `ORCID XML <http://support.orcid.org/knowledgebase/topics/32832-orcid-xml>`_
 
-orcid-works
------------
+work
+----
 
 ``orcid-works`` can be used when there is a need to add or update researcher's
 works. It should be a list of dictionaries. Each dictionary describes a single
@@ -270,8 +253,8 @@ Each dictionary can contain following fields:
     }]
 
 
-orcid-affiliations
-------------------
+education
+---------
 
 ``orcid-affiliations`` can be used when there is a need to add or update researcher's
 affiliations. It should be a list of dictionaries. Each dictionary describes a single
@@ -342,8 +325,11 @@ affiliation. Each dictionary can contain following fields:
 See `organization XML <https://github.com/MSusik/python-orcid#organization-xml>`_
 for details.
 
-orcid-funding
--------------
+employment
+----------
+
+funding
+-------
 
 ``orcid-funding`` can be used when there is a need to add or update a funding
 given to the researcher. It should be a list of dictionaries. 
@@ -457,7 +443,7 @@ following fields:
 
 See `organization XML <https://github.com/MSusik/python-orcid#organization-xml>`_ for contributor's organization subfield
 
-Organization XML
+organization XML
 ----------------
 
 ``organization`` is a field used by ``funding`` and ``affiliations``.
@@ -496,8 +482,8 @@ It can contain following fields:
         ..
     }
 
-Additional options for pushing data
------------------------------------
+additional options
+------------------
 
 Every work/affiliation/funding can have it's privacy level set by setting
 ``visibility`` field:
@@ -511,32 +497,9 @@ Every work/affiliation/funding can have it's privacy level set by setting
     ...
     }]
 
-Sending external id
--------------------
-
-You can add external ids to author's profile
-
-.. code-clock:: python
-
-    orcid.add_external_id(orcid_id, token, list_with_data)
-
-Each dictionary in ``list_with_data`` should contain four subfields. Below you
-can see an example of such dictionary:
-
-.. code-block::
-
-    {
-        'orcid': '0000-0000-0001-0000',
-        'common_name': 'Scopus Author ID',
-        'reference': '22988279600',
-        'url': 'http://www.scopus.com/authid/detail.url?authorId=22988279600#'
-    }
-
 To do
 -----
 
-+ Test funding and affiliations
-+ Implement the rest of the push API
-+ Implement update API
++ Peer review XMLs
 + Error handling
 + Write tests, add travis and coverage

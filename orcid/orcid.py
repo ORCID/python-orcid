@@ -28,8 +28,8 @@ class PublicAPI:
         else:
             self._endpoint_public = "http://pub.orcid.org"
 
-    def read_record_public(self, orcid_id, request_type,
-                           response_format='json', id=None):
+    def read_record_public(self, orcid_id, request_type, id=None,
+                           response_format='json'):
         """Get the public info about the researcher.
 
         Parameters
@@ -102,8 +102,8 @@ class MemberAPI(PublicAPI):
         self._update_activities(orcid_id, token, requests.post, request_type,
                                 data, xml)
 
-    def read_record_member(self, orcid_id, request_type,
-                           response_format='json', id=None):
+    def read_record_member(self, orcid_id, request_type, id=None,
+                           response_format='json'):
         """Get the member info about the researcher.
 
         Parameters

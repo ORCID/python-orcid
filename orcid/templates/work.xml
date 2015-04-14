@@ -10,27 +10,40 @@
   {% if record.put_code %}
   put-code="{{ record.put_code }}"
   {% endif %}>
+  {%- if record.title -%}
   <work:title>
     <common:title>{{ record.title }}</common:title>
+    {%- if record.subtitle -%}
     <common:subtitle>{{ record.subtitle }}</common:subtitle>
+    {%- endif -%}
     {%- for translation in record.translated_titles -%}
     <common:translated-title language-code="{{ translation.language-code }}">
       {{ translation.translated_title }}
     </common:translated-title>
     {%- endfor -%}
   </work:title>
+  {%- endif -%}
+  {%- if record.journal_title -%}
   <work:journal-title>{{ record.journal_title }}</work:journal-title>
+  {%- endif -%}
+  {%- if record.short_description -%}
   <work:short-description>{{ record.short_description }}</work:short-description>
+  {%- endif -%}
+  {%- if record.citation -%}
   <work:citation>
     <work:citation-type>{{ record.citation_type }}</work:citation-type>
     <work:citation>{{ record.citation }}</work:citation>
   </work:citation>
+  {%- endif -%}
+  {%- if record.type -%}
   <work:type>{{ record.type }}</work:type>
+  {%- endif -%}
   {%- if record.publication_date -%}
   <common:publication-date>
     {{ date_xml(record.publication_date) }}
   </common:publication-date>
   {%- endif -%}
+  {%- if record.external_identifiers -%}
   <work:external-identifiers>
     {%- for external_identifier in record.external_identifiers -%}
     <work:work-external-identifier>
@@ -43,7 +56,11 @@
     </work:work-external-identifier>
     {%- endfor -%}
   </work:external-identifiers>
+  {%- endif -%}
+  {%- if record.url %}
   <work:url>{{ record.url }}</work:url>
+  {%- endif -%}
+  {%- if record.contributors -%}
   <work:contributors>
     {%- for contributor in record.contributors -%}
     <work:contributor>
@@ -59,6 +76,7 @@
     </work:contributor>
     {%- endfor -%}
   </work:contributors>
+  {%- endif -%}
   {%- if record.language_code -%}
   {{ language_code(record.language_code) }}
   {%- endif -%}
