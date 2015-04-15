@@ -43,24 +43,26 @@ PublicAPI
 The public API allows the developers to use the search engine and read author
 records. It is available for everybody.
 
-``` python
+.. code-block:: python
+
     import orcid
     api = orcid.PublicAPI(sandbox=True)
     # api.search (to do)
     # Get the summary
     summary = api.read_record_public('0000-0001-1111-1111', 'activities')
-```
+
 
 Every record in the `summary` dictionary should contain _put-codes_. Using
 them, it is possible to query the specific record for details. Type of the
 record and the put-code need to be provided.
 
-``` python
+.. code-block:: python
+
     # Get the specific record
     # Available record types are:
     # 'education', 'employment', 'funding', 'peer-review', 'work'
     work = api.read_record_public('0000-0001-1111-1111', 'work', '1111')
-```
+
 
 MemberAPI
 =========

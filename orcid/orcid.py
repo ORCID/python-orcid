@@ -1,12 +1,12 @@
 """Implementation of python-orcid library."""
 
 from jinja2 import FileSystemLoader, Environment
-from lxml import etree
 
 import json
 import os
 import requests
 
+SEARCH_VERSION = "/v1.2"
 VERSION = "/v2.0_rc1"
 
 
@@ -24,12 +24,11 @@ class PublicAPI:
             mode.
         """
         if sandbox:
-            self._endpoint_public = "http://pub.sandbox.orcid.org"
+            self._endpoint_public = "https://pub.sandbox.orcid.org"
         else:
-            self._endpoint_public = "http://pub.orcid.org"
+            self._endpoint_public = "https://pub.orcid.org"
 
-    def read_record_public(self, orcid_id, request_type, id=None,
-                           response_format='json'):
+    def read_record_public(self, orcid_id, request_type, id=None):
         """Get the public info about the researcher.
 
         Parameters
@@ -39,17 +38,30 @@ class PublicAPI:
         :param request_type: string
             One of 'activities', 'education', 'employment', 'funding',
             'peer-review', 'work'
-        :param response_format: string
-            One of json, xml.
         :param id: string
             The id of the queried work. Must be given if 'request_type' is not
             'activities'.
         """
         return self._get_info(orcid_id, self._get_public_info, request_type,
-                              response_format, id)
+                              id)
 
-    def _get_info(self, orcid_id, function, request_type,
-                  response_format='json', id=None):
+    def search_public(self, query, method="lucene", start=None, rows=None,
+                      search_field="orcid-bio"):
+        """Search the ORCID database.
+
+        Parameters
+        ----------
+        :param query: string
+            Query in line with the chosen method
+        :param method: string
+            One of 'lucene', ''
+        """
+        headers = {'Accept': 'application/orcid+json'}
+
+        return self._search(query, method, start, rows, search_field,
+                            headers, self._endpoint_public)
+
+    def _get_info(self, orcid_id, function, request_type, id=None):
         if request_type != "activities" and not id:
             raise ValueError("""In order to fetch specific record, please specify
                                 the 'id' argument.""")
@@ -57,24 +69,32 @@ class PublicAPI:
             raise ValueError("""In order to fetch activities summary, the 'id'
                                 argument is redundant.""")
 
-        response = function(orcid_id, request_type, response_format, id)
-
-        code = response.status_code
-
+        response = function(orcid_id, request_type, id)
         response.raise_for_status()
+        return json.loads(response.content)
 
-        if response_format == "json":
-            return json.loads(response.content)
-        elif response_format == "xml":
-            return etree.fromstring(response.content)
-
-    def _get_public_info(self, orcid_id, request_type, response_format, id):
+    def _get_public_info(self, orcid_id, request_type, id):
         request_url = '%s/%s/%s' % (self._endpoint_public + VERSION,
                                     orcid_id, request_type)
         if id:
             request_url += '/%s' % id
-        headers = {'Accept': 'application/orcid+%s' % response_format}
+        headers = {'Accept': 'application/orcid+json'}
+
         return requests.get(request_url, headers=headers)
+
+    def _search(self, query, method, start, rows, search_field, headers,
+                endpoint):
+
+        url = endpoint + SEARCH_VERSION + "/search/" + \
+            search_field + "/?q=" + query
+        if start:
+            url += "&start=%s" % start
+        if rows:
+            url += "&rows=%s" % rows
+
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return json.loads(response.content)
 
 
 class MemberAPI(PublicAPI):
@@ -93,7 +113,7 @@ class MemberAPI(PublicAPI):
         self._key = institution_key
         self._secret = institution_secret
         if sandbox:
-            self._endpoint_member = "http://api.sandbox.orcid.org"
+            self._endpoint_member = "https://api.sandbox.orcid.org"
         else:
             self._endpoint_member = "https://api.orcid.org"
         PublicAPI.__init__(self, sandbox)
@@ -102,8 +122,7 @@ class MemberAPI(PublicAPI):
         self._update_activities(orcid_id, token, requests.post, request_type,
                                 data, xml)
 
-    def read_record_member(self, orcid_id, request_type, id=None,
-                           response_format='json'):
+    def read_record_member(self, orcid_id, request_type, id=None):
         """Get the member info about the researcher.
 
         Parameters
@@ -120,11 +139,24 @@ class MemberAPI(PublicAPI):
             'activities'.
         """
         return self._get_info(orcid_id, self._get_member_info, request_type,
-                              response_format, id)
+                              id)
 
     def remove_record(self, orcid_id, token, request_type, id):
         self._update_activities(orcid_id, token, requests.delete, request_type,
                                 None, None, id)
+
+    def search_member(self, query, method="lucene", start=None, rows=None,
+                      search_field="orcid-bio"):
+        """TO DO."""
+
+        access_token = self. \
+            _get_access_token_from_orcid('/read-public')
+
+        headers = {'Accept': 'application/orcid+json',
+                   'Authorization': 'Bearer %s' % access_token}
+
+        return self._search(query, method, start, rows, search_field, headers,
+                            self._endpoint_member)
 
     def update_record(self, orcid_id, token, request_type, id, data=None,
                       xml=None):
@@ -138,24 +170,21 @@ class MemberAPI(PublicAPI):
                    'grant_type': 'client_credentials'
                    }
 
-        request_url = "%s/oauth/token" % self._endpoint_member
+        url = "%s/oauth/token" % self._endpoint_member
         headers = {'Accept': 'application/json'}
-        response = requests.post(request_url, data=payload, headers=headers)
-        code = response.status_code
 
-        res = None
-        if code == requests.codes.ok:
-            res = json.loads(response.content)['access_token']
-        return res
+        response = requests.post(url, data=payload, headers=headers)
+        response.raise_for_status()
+        return json.loads(response.content)['access_token']
 
-    def _get_member_info(self, orcid_id, request_type, response_format, id):
+    def _get_member_info(self, orcid_id, request_type, id):
         access_token = self. \
             _get_access_token_from_orcid('/activities/read-limited')
         request_url = '%s/%s/%s' % (self._endpoint_member + VERSION,
                                     orcid_id, request_type)
         if id:
             request_url += '/%s' % id
-        headers = {'Accept': 'application/orcid+%s' % response_format,
+        headers = {'Accept': 'application/orcid+json',
                    'Authorization': 'Bearer %s' % access_token}
         return requests.get(request_url, headers=headers)
 
@@ -182,12 +211,7 @@ class MemberAPI(PublicAPI):
         if method == requests.delete:
             response = method(url, headers=headers)
         else:
-            print xml
             response = method(url, xml, headers=headers)
 
         code = response.status_code
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError, exc:
-            print exc
-            print response.text
+        response.raise_for_status()
