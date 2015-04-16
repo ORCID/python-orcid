@@ -29,6 +29,4 @@ setup(author='Mateusz Susik',
       tests_require=['pytest'],
       url='https://github.com/MSusik/python-orcid',
       version='0.0'
-      # TO DO
-      # download_url='https://github.com/.../tarball/0.1',
       )

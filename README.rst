@@ -4,7 +4,7 @@ python-orcid
 Current state
 -------------
 
-Under development, few features work. Readme is outdated.
+Adding tests and continuos integration.
 
 Authors
 -------
@@ -298,7 +298,7 @@ In case of doubts, see `funding XML <http://members.orcid.org/api/xml-funding>`_
 
 A minimal example using only the required fields.
 
-.. code-block::python
+.. code-block:: python
 
     {
         # Supported types:
