@@ -24,13 +24,19 @@
 
 {%- macro organization(subrecord) -%}
 <common:name>{{ subrecord.name }}</common:name>
+{%- if subrecord.address -%}
 <common:address>
-    <common:city>{{ subrecord.city }}</common:city>
-    {%- if subrecord.region -%}
-    <common:region>{{ subrecord.region }}</common:region>
+	{%- if subrecord.address.city -%}
+    <common:city>{{ subrecord.address.city }}</common:city>
     {%- endif -%}
-    <common:country>{{ subrecord.country }}</common:country>
+    {%- if subrecord.address.region -%}
+    <common:region>{{ subrecord.address.region }}</common:region>
+    {%- endif -%}
+    {%- if subrecord.address.country -%}
+    <common:country>{{ subrecord.address.country }}</common:country>
+    {%- endif -%}
 </common:address>
+{%- endif -%}
 {%- if subrecord.disambiguated_organization -%}
 <common:disambiguated-organization>
   <common:disambiguated-organization-identifier>{{ subrecord.disambiguatd_organization.identifier }}</common:disambiguated-organization-identifier>

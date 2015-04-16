@@ -16,11 +16,11 @@
     {%- if record.title.subtitle -%}
     <common:subtitle>{{ record.title.subtitle }}</common:subtitle>
     {%- endif -%}
-    {%- for translation in record.title.translated_titles -%}
-    <common:translated-title language-code="{{ translation.language_code }}">
-      {{ translation.translated_title }}
+    {%- if record.title.translated_title -%}
+    <common:translated-title language-code="{{ record.title.translated_title.language_code }}">
+      {{ record.title.translated_title.translated_title }}
     </common:translated-title>
-    {%- endfor -%}
+    {%- endif -%}
   </work:title>
   {%- endif -%}
   {%- if record.journal_title -%}

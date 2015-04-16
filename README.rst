@@ -149,7 +149,7 @@ examplary dictionaries that can be passed as an argument:
 work
 ----
 
-Minimal example, only the mandatory fields are filled:
+A minimal example, only the mandatory fields are filled.
 
 .. code-block:: python
 
@@ -159,18 +159,18 @@ Minimal example, only the mandatory fields are filled:
     }
 
 An example where all the fields are filled.
-
-In case of doubts, see `work XML <http://members.orcid.org/api/xml-orcid-works>`_
+In case of doubts, see `work XML <http://members.orcid.org/api/xml-orcid-works>`_.
 
 .. code-block:: python
 
     {
-        'title': {'title': 'The best sorting algorithm',
+        'title': {'title': 'API Test Title',
                   'subtitle': 'My Subtitle',
-                  'translated_titles': [
-                        {'language_code': 'fr',
-                         'translated_title': 'API essai Titre'}
-                  ]
+                  'translated_title':
+                        {'language_code': 'pl',
+                         # Remember to use unicode strings for non ASCII
+                         # charactes!
+                         'translated_title': u'API Tytuł testowy'}
                  },
         'journal_title': 'Journal Title',
         'short_description': 'My abstract',
@@ -239,88 +239,59 @@ In case of doubts, see `work XML <http://members.orcid.org/api/xml-orcid-works>`
     }
 
 
-education
----------
+education or employment
+-----------------------
 
-``orcid-affiliations`` can be used when there is a need to add or update researcher's
-affiliations. It should be a list of dictionaries. Each dictionary describes a single
-affiliation. Each dictionary can contain following fields:
+A minimal example usig only the required fields.
 
-.. code-block:: python
-
-    [{
-    ...
-        # Can contain one of tho values: 'education' or 'employment'.
-        # It is a mandatory field.
-        'type': 'education',
-    ...
-    }]
-
+In case of doubts, see `affiliation XML <http://members.orcid.org/api/xml-affiliations>`_.
 
 .. code-block:: python
 
-    [{
-    ...
-        # The name of the department
-        'department': 'University of Nothing',
-    ...
-    }]
+    {
+        'organization': {
+            'name': 'My college',
+            'address': {
+                'city': 'Some city',
+                'country': 'US'
+            }
+        }
+    }
 
-
-.. code-block:: python
-
-    [{
-    ...
-        'role': 'senior professor',
-    ...
-    }]
-
+An example with all the fields used.
 
 .. code-block:: python
 
-    [{
-    ...
-        'start_date': {'year': '2010',
-                       'month': '02',
+    {
+        'department_name': 'Department',
+        'role': 'Researcher (Academic)',
+        'start_date': {'year': '2012',
+                       'month': '04',
                        'day': '10'
         },
-    ...
-    }]
-
-
-.. code-block:: python
-
-    [{
-    ...
-        'end_date': {'year': '2011',
-                     'month': '02',
+        'end_date': {'year': '2013',
+                     'month': '04',
                      'day': '10'
         },
-    ...
-    }]
+        'organization': {
+            'address': {
+                'city': 'Some City',
+                'region': 'NY',
+                'country': 'US'
+            },
+            'disambiguated-organization': {
+                'identifier': 'XXXXXX',
+                # Only RINGGOLD is available so far.
+                'disambiguation-source': 'RINGGOLD'
+            },
+            'name': 'My college'
+        }
+    }
 
 
-.. code-block:: python
-
-    [{
-    ...
-        'organization': ...
-    ...
-    }]
-
-See `organization XML <https://github.com/MSusik/python-orcid#organization-xml>`_
-for details.
-
-employment
-----------
 
 funding
 -------
-
-``orcid-funding`` can be used when there is a need to add or update a funding
-given to the researcher. It should be a list of dictionaries. 
-Each dictionary describes a single funding. Each dictionary can contain
-following fields:
 
 .. code-block:: python
 
@@ -427,46 +398,6 @@ following fields:
     ...
     }]
 
-See `organization XML <https://github.com/MSusik/python-orcid#organization-xml>`_ for contributor's organization subfield
-
-organization XML
-----------------
-
-``organization`` is a field used by ``funding`` and ``affiliations``.
-
-It can contain following fields:
-
-.. code-block:: python
-    
-    'organization': {
-        ..
-        'name': 'The Name Of The Organization',
-        ..
-    }
-
-.. code-block:: python
-    
-    'organization': {
-        ..
-        'address': {
-            'city': 'Boston',
-            'region': 'MA',
-            'country': 'USA'
-        },
-        ..
-    }
-
-.. code-block:: python
-
-    'organization': {
-        ..
-        'disambiguated-organization': {
-            'id': 'someid',
-            # 'Ringgold' or 'ISNI'
-            'source': 'ISNI'
-        },
-        ..
-    }
 
 additional options
 ------------------

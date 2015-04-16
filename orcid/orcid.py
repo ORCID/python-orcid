@@ -202,13 +202,11 @@ class MemberAPI(PublicAPI):
             template_dir = '%s/templates/' % current_path
             environment = Environment(loader=FileSystemLoader(template_dir))
             template = environment.get_template("%s.xml" % request_type)
-            xml = template.render({'record': data})
+            xml = template.render({'record': data}).encode('utf-8')
 
         headers = {'Accept': 'application/vnd.orcid+xml',
                    'Content-Type': 'application/vnd.orcid+xml',
                    'Authorization': 'Bearer ' + token}
-
-        print xml
 
         if method == requests.delete:
             response = method(url, headers=headers)
