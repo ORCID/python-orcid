@@ -127,12 +127,12 @@ The ``token`` is the string received from OAuth 3-legged authorization.
 
 ``work`` is of the types of records. Every time a record is modified, the type
 has to be specified. The available types are:
-+ activities
-+ education
-+ employment
-+ funding
-+ peer-review
-+ work
+- activities
+- education
+- employment
+- funding
+- peer-review
+- work
 
 The last argument is the record itself. You can pass a python dictionary
 (see the explanation below) or an xml.
@@ -149,6 +149,8 @@ examplary dictionaries that can be passed as an argument:
 work
 ----
 
+In case of doubts, see `work XML <http://members.orcid.org/api/xml-orcid-works>`_.
+
 A minimal example, only the mandatory fields are filled.
 
 .. code-block:: python
@@ -159,7 +161,6 @@ A minimal example, only the mandatory fields are filled.
     }
 
 An example where all the fields are filled.
-In case of doubts, see `work XML <http://members.orcid.org/api/xml-orcid-works>`_.
 
 .. code-block:: python
 
@@ -225,9 +226,9 @@ In case of doubts, see `work XML <http://members.orcid.org/api/xml-orcid-works>`
                 # 'principal-investigator'
                 # 'postdoctoral-researcher'
                 # 'support-staff'
-                # 'Lead'
-                # 'Co lead'
-                # 'Supported by'
+                # 'lead'
+                # 'co lead'
+                # 'supported by'
                 'role': 'author',
                 # One of 'additional', 'first'
                 'sequence': 'additional'
@@ -242,9 +243,9 @@ In case of doubts, see `work XML <http://members.orcid.org/api/xml-orcid-works>`
 education or employment
 -----------------------
 
-A minimal example usig only the required fields.
-
 In case of doubts, see `affiliation XML <http://members.orcid.org/api/xml-affiliations>`_.
+
+A minimal example using only the required fields.
 
 .. code-block:: python
 
@@ -293,111 +294,92 @@ An example with all the fields used.
 funding
 -------
 
-.. code-block:: python
+In case of doubts, see `funding XML <http://members.orcid.org/api/xml-funding>`_.
 
-    [{
-    ...
-        # Can contain one of tho values: 'award', 'contract', 'salary-award',
-        # 'grant'.
-        # It is a mandatory field.
-        'type': 'grant',
-    ...
-    }]
+A minimal example using only the required fields.
 
+.. code-block::python
 
-.. code-block:: python
-
-    [{
-    ...
-        'title': 'Super grant',
-    ...
-    }]
-
-
-.. code-block:: python
-
-    [{
-    ...
-        'description': 'I got this grant because I'm very smart. I'm planning
-        to buy a yacht for it.',
-    ...
-    }]
-
-
-.. code-block:: python
-
-    [{
-    ...
-        # mandatory field
-        'amount': {'currency': 'USD',
-                   'value': 10000},
-    ...
-    }]
-
-.. code-block:: python
-
-    [{
-    ...
-        'url': 'www.mypapawasarollingstone.org',
-    ...
-    }]
-
-
-.. code-block:: python
-
-    [{
-    ...
-        'start_date': {'year': '2010',
-                       'month': '02',
-                       'day': '10'
+    {
+        # Supported types:
+        # 'award',
+        # 'contract',
+        # 'grant',
+        # 'salary-award'
+        'type': 'award',
+        'title': {
+            'title': 'Title of the Funding',
         },
-    ...
-    }]
-
-
-.. code-block:: python
-
-    [{
-    ...
-        'end_date': {'year': '2011',
-                     'month': '02',
-                     'day': '10'
-        },
-    ...
-    }]
-
-.. code-block:: python
-
-    [{
-    ...
-        'external_ids': [{'type': 'other-id',
-                          'value': 'someid',
-                          'url': 'www.example.com'}],
-    ...
-    }]
-
-.. code-block:: python
-
-    [{
-    ...
-        'contributors': [{
-            'orcid': {
-                'uri': 'http://orcid.org/0000-0003-4494-0734',
-                'path': '0000-0003-4494-0734',
-                'host': 'orcid.org'
+        'organization': {
+            'address': {
+                'city': 'London',
+                'country': 'GB'
             },
-            # credit name
-            'name': 'Smith, John.',
-            'email': 'john@mailinator.com',
-            'attributes': {
-                # one of 'lead', 'co lead', 'supported by', 'other'
-                'role': 'lead',
-            }
-            'organization': ...
-        }]
-    ...
-    }]
+            'name': 'Funding Agency Name'
+        }
+    }
 
+An example with all the fields used.
+
+.. code-block:: python
+
+    {
+        'type': 'award',
+        'title': {
+            'title': 'Title of the Funding',
+            'translated_title': {
+                'title': u'Tytuł Finansowania',
+                'code': 'pl'
+            }
+        },
+        'short_description': 'Description of the funding',
+        'amount': {'currency_code': 'USD',
+                   'amount': 1000},
+        'url': 'www.orcid.org',
+        'start_date': {'year': '2013',
+                       'month': '01',
+                       'day': '10'
+                       },
+        'end_date': {'year': '2014',
+                     'month': '01',
+                     'day': '10'
+                     },
+        'external_identifiers': [{
+                                  # Only allowed value is 'grant_number'
+                                  'type': 'grant_number',
+                                  'value': '1234',
+                                  'url': 'www.funding.com/1234'
+                                }],
+        'contributors': [{
+            'orcid': '0000-0003-4494-0734',
+            'credit_name': {
+                'name': 'Smith, John.',
+            },
+            'email': 'john@mailinator.com',
+             'attributes': {
+                 # one of 'lead', 'co lead', 'supported by', 'other'
+                 'role': 'lead',
+             }
+        }],
+        'organization': {
+            'address': {
+                'city': 'London',
+                'region': 'London',
+                'country': 'GB'
+            },
+            'disambiguated-organization': {
+                'identifier': 'XXXXXX',
+                # Only FUNDREF is available so far.
+                'disambiguation-source': 'FUNDREF'
+            },
+            'name': 'Funding Agency Name'
+        }
+    }
+
+peer-rewiev
+-----------
+
+TBA
 
 additional options
 ------------------
@@ -407,16 +389,9 @@ Every work/affiliation/funding can have it's privacy level set by setting
 
 .. code-block:: python
 
-    [{
+    {
     ...
         # one of 'private', 'limited', 'public'
         'visibility': 'private',
     ...
-    }]
-
-To do
------
-
-+ Peer review XMLs
-+ Error handling
-+ Write tests, add travis and coverage
+    }

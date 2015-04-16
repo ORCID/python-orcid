@@ -14,12 +14,16 @@
     {%- if record.organization_defined_type -%}
     <funding:organization-defined-type>{{ record.organization_defined_type }}</funding:organization-defined-type>
     {%- endif -%}
+    {%- if record.title -%}
     <funding:title>
-        <common:title>{{ record.title }}</common:title>
-        {%- for translated_title in record.translated_titles -%}
-        <common:translated-title language-code="{{ translated_title.code }}">{{ translated_title.title }}</common:translated-title>
-        {%- endfor -%}
+        {%- if record.title.title -%}
+        <common:title>{{ record.title.title }}</common:title>
+        {%- endif -%}
+        {%- if record.title.translated_title -%}
+        <common:translated-title language-code="{{ record.title.translated_title.code }}">{{ record.title.translated_title.title }}</common:translated-title>
+        {%- endif -%}
     </funding:title>
+    {%- endif -%}
     {%- if record.short_description -%}
     <funding:short-description>{{ record.short_description }}</funding:short-description>
     {%- endif -%}
@@ -51,12 +55,22 @@
     <funding:contributors>
         {%- for contributor in record.contributors -%}
         <funding:contributor>
-            {{ contributor_orcid(contributor.orcid) }}
-            <funding:credit-name visibility="visibility={{ contributor.credit_name.visibility }}">{{ contributor.credit_name }}</funding:credit-name>
+            {%- if contributor.orcid -%}
+            <common:contributor-orcid>
+                {{ contributor_orcid(contributor.orcid) }}
+            </common:contributor-orcid>
+            {%- endif -%}
+            {%- if contributor.credit_name -%}
+            <funding:credit-name{%- if contributor.credit_name.visibility -%} visibility="visibility={{ contributor.credit_name.visibility }}"{%- endif -%}>{{ contributor.credit_name.name }}</funding:credit-name>
+            {%- endif -%}
+            {%- if contributor.email -%}
             <funding:contributor-email>{{ contributor.email }}</funding:contributor-email>
+            {%- endif -%}
+            {%- if contributor.role -%}
             <funding:contributor-attributes>
                 <funding:contributor-role>{{ contributor.role }}</funding:contributor-role>
             </funding:contributor-attributes>
+            {%- endif -%}
         </funding:contributor>
         {%- endfor -%}
     </funding:contributors>
