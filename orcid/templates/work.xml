@@ -12,12 +12,12 @@
   {% endif %}>
   {%- if record.title -%}
   <work:title>
-    <common:title>{{ record.title }}</common:title>
-    {%- if record.subtitle -%}
-    <common:subtitle>{{ record.subtitle }}</common:subtitle>
+    <common:title>{{ record.title.title }}</common:title>
+    {%- if record.title.subtitle -%}
+    <common:subtitle>{{ record.title.subtitle }}</common:subtitle>
     {%- endif -%}
-    {%- for translation in record.translated_titles -%}
-    <common:translated-title language-code="{{ translation.language-code }}">
+    {%- for translation in record.title.translated_titles -%}
+    <common:translated-title language-code="{{ translation.language_code }}">
       {{ translation.translated_title }}
     </common:translated-title>
     {%- endfor -%}
@@ -31,8 +31,8 @@
   {%- endif -%}
   {%- if record.citation -%}
   <work:citation>
-    <work:citation-type>{{ record.citation_type }}</work:citation-type>
-    <work:citation>{{ record.citation }}</work:citation>
+    <work:citation-type>{{ record.citation.citation_type }}</work:citation-type>
+    <work:citation>{{ record.citation.citation }}</work:citation>
   </work:citation>
   {%- endif -%}
   {%- if record.type -%}
@@ -64,15 +64,23 @@
   <work:contributors>
     {%- for contributor in record.contributors -%}
     <work:contributor>
+      {%- if contributor.orcid -%}
       <common:contributor-orcid>
         {{ contributor_orcid(contributor.orcid) }}
       </common:contributor-orcid>
+      {%- endif -%}
+      {%- if contributor.credit_name -%}
       <work:credit-name visibility={{ contributor.credit_name.visibility }}>{{ contributor.credit_name.name }}</work:credit-name>
+      {%- endif -%}
+      {%- if contributor.email -%}
       <work:contributor-email>{{ contributor.email }}</work:contributor-email>
+      {%- endif -%}
+      {%- if contributor.attributes -%}
       <work:contributor-attributes>
-        <work:contributor-sequence>{{ contributor.sequence }}</work:contributor-sequence>
-        <work:contributor-role>{{ contributor.role }}</work:contributor-role>
+        <work:contributor-sequence>{{ contributor.attributes.sequence }}</work:contributor-sequence>
+        <work:contributor-role>{{ contributor.attributes.role }}</work:contributor-role>
       </work:contributor-attributes>
+      {%- endif -%}
     </work:contributor>
     {%- endfor -%}
   </work:contributors>

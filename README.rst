@@ -47,12 +47,12 @@ records. It is available for everybody.
 
     import orcid
     api = orcid.PublicAPI(sandbox=True)
-    # api.search (to do)
+    search_results = api.search_public('text:English')
     # Get the summary
     summary = api.read_record_public('0000-0001-1111-1111', 'activities')
 
 
-Every record in the `summary` dictionary should contain _put-codes_. Using
+Every record in the `summary` dictionary should contain *put-codes*. Using
 them, it is possible to query the specific record for details. Type of the
 record and the put-code need to be provided.
 
@@ -67,13 +67,35 @@ record and the put-code need to be provided.
 MemberAPI
 =========
 
+The member API allows the developers to add/change/remove records if their
+code led the user through the authentication process. To modify the records
+one needs a token which can be obtained following the OAuth 3-legged
+authorization process.
+
+The member API lets the developer obtain more information when using the
+search API or fetching the records.
+
+To create an instance of the member API handler, the institution key and the
+institution secret have to be provided.
+
+.. code-block:: python
+
+    import orcid
+    api = orcid.MemberAPI('institution_key', 'institution_secret',
+                          sandbox=True)
+    search_results = api.search_member('text:English')
+    # Get the summary
+    summary = api.read_record_member('0000-0001-1111-1111', 'activities')
+
+All the methods from the public API are available in the member API.
+
 Token
 -----
 
-This library won't help you with obtaining correct user's authentication
-token. I believe it is a responsibility of the service you provide to ask a
-user for the token. There are numerous Python libraries to help you with
-this task. Here are few popular choices (the order below is quite random):
+So far, the library doesn't provide any way to get the user token. The feature
+will be implemented in the future, though.
+
+To obtain a token, you can use one of the libraries below:
 
 * `OAuthLib <https://pypi.python.org/pypi/oauthlib>`_
 * `RAuth <https://rauth.readthedocs.org/en/latest/>`_
@@ -88,171 +110,133 @@ check `this page. <http://oauth.net/code/>`_
 Adding/updating/removing records
 --------------------------------
 
-Use ``push_data``, to send more data:
+Using the member API, one can add/update/remove records from the ORCID profile.
 
 .. code-block:: python
 
-    orcid.push_data(orcid_id, scope, token, list_with_data)
+    api.add_record('author-orcid', 'token', 'work',
+                   {'title': 'Title', 'type': 'artistic-performance'})
 
-or
+    # Change the type to 'other'
+    api.update_record('author-orcid', 'token', 'work', 'put-code',
+                      {'type': 'other'})
+    api.remove_record('author-orcid', 'token', 'work', 'put-code')
+
+
+The ``token`` is the string received from OAuth 3-legged authorization.
+
+``work`` is of the types of records. Every time a record is modified, the type
+has to be specified. The available types are:
++ activities
++ education
++ employment
++ funding
++ peer-review
++ work
+
+The last argument is the record itself. You can pass a python dictionary
+(see the explanation below) or an xml.
 
 .. code-block:: python
 
-    orcid.push_data(orcid_id, scope, token, xml, render=False)
+    api.add_record('author-orcid', 'token', 'work',
+                   xml='<work>xml content</work>')
 
-if you have already prepared the ORCID XML.
 
-The `token` is the one that you received from OAuth 3-legged authorization.
-
-The scope can be one of ``orcid-works``, ``orcid-affiliations``, ``orcid-funding``.
-These scopes allow to send different types of information to ORCID. If you
-don't have the ORCID XML prepared, you should read detailed info below. It
-describes the structure of the list that the ``push_data`` function should
-be provided with.
-
-Note that the majority of fields and subfields can be skipped.
-
-When in doubt, please refer to the ORCID documetation:
-`ORCID XML <http://support.orcid.org/knowledgebase/topics/32832-orcid-xml>`_
+If xml is not provided, it will be rendered by the library. Here are some
+examplary dictionaries that can be passed as an argument:
 
 work
 ----
 
-``orcid-works`` can be used when there is a need to add or update researcher's
-works. It should be a list of dictionaries. Each dictionary describes a single
-work. There are two mandatory fields: ``work_title`` and ``work_type``.
-Each dictionary can contain following fields:
+Minimal example, only the mandatory fields are filled:
 
 .. code-block:: python
 
-    [{
-    ...
-        # Should contain the title of the work. It is a mandatory field.
-        'work_title': {'title': 'The best sorting algorithm',
-                       'subtitle': 'Better even than quicksort'
-                       'translated_titles': [
-                                             ('fr', 'Le meilleur algorithme de tri'),
-                                             ('pl', 'Najlepszy algorytm sortujący')
-                                            ]
-                       },
-    ...
-    }]
+    {
+        'title': {'title': 'API Test Title'},
+        'type': 'journal-article'
+    }
 
+An example where all the fields are filled.
 
-.. code-block:: python
-    
-    [{
-    ...
-        'journal_title': 'The best sorting algorithm ever',
-    ...
-    }]
-
+In case of doubts, see `work XML <http://members.orcid.org/api/xml-orcid-works>`_
 
 .. code-block:: python
 
-    [{
-    ...
-        'short_description': 'We present an algorithm sorting any list in O(1)`,
-    ...
-    }]
-
-
-.. code-block:: python
-
-    [{
-    ...
-        # See http://support.orcid.org/knowledgebase/articles/135758-anatomy-of-a-citation
-        'work_citation': (`bibtex`, `@article {Haak:2012:0953-1513:259,
-                          author = "Haak, Laurel L. and Fenner, Martin and Paglione,
-                          Laura and Pentz, Ed and Ratner, Howard",
-                          title = "ORCID: a system to uniquely identify researchers",
-                          journal = "Learned Publishing",
-                          volume = "25",
-                          number = "4",
-                          year = "2012",
-                          pages = "259-264",
-                          doi = "doi:10.1087/20120404"}`
-                          ),
-    ...
-    }]
-
-
-.. code-block:: python
-
-    [{
-    ...
-        # See http://support.orcid.org/knowledgebase/articles/118795
-        # It is a mandatory field
-        'work_type': 'report',
-    ...
-    }]
-
-
-.. code-block:: python
-
-    [{
-    ...
-        'publication_date': {'year': '2017',
-                             'month': '02',
+    {
+        'title': {'title': 'The best sorting algorithm',
+                  'subtitle': 'My Subtitle',
+                  'translated_titles': [
+                        {'language_code': 'fr',
+                         'translated_title': 'API essai Titre'}
+                  ]
+                 },
+        'journal_title': 'Journal Title',
+        'short_description': 'My abstract',
+        'citation': {
+            'citation': '''@article {ORCIDtest2014,
+                           author = "Lastname, Firstname",
+                           title = "API Test Title",
+                           journal = "Journal Title",
+                           volume = "25",
+                           number = "4",
+                           year = "2010",
+                           pages = "259-264",
+                           doi = "doi:10.1087/20120404"
+                         }''',
+            # Available types:
+            # 'formatted-unspecified'
+            # 'bibtex'
+            # 'formatted-apa'
+            # 'formatted-harvard'
+            # 'formatted-ieee'
+            # 'formatted-mla'
+            # 'formatted-vancouver'
+            # 'formatted-chicago'
+            'citation_type': 'bibtex'
+        },
+        # See http://members.orcid.org/api/supported-work-types
+        'type': 'journal-article',
+        'publication_date': {'year': '2010',
+                             'month': '11',
                              'day': '10'
         },
-    ...
-    }]
-
-
-.. code-block:: python
-
-    [{
-    ...
-        # See http://support.orcid.org/knowledgebase/articles/118807
-        'work_external_identifiers': [('other-id', 'very unique id')],
-    ...
-    }]
-
-
-.. code-block:: python
-
-    [{
-    ...
+        # See http://members.orcid.org/api/supported-work-identifiers
+        'work_external_identifiers': [{
+            'type': 'source-work-id',
+            'id': '1234'
+        }],
         'url': 'https://github.com/MSusik/python-orcid',
-    ...
-    }]
-
-
-.. code-block:: python
-
-    [{
-    ...
-        # See http://support.orcid.org/knowledgebase/articles/118843-anatomy-of-a-contributor
-        'contributors': {
-            'name': 'Some Body',
-            'orcid': '0000-0002-1233-3422',
+        'contributors': [{
+            'name': 'LastName, FirstName',
+            'orcid': '0000-0001-5109-3700',
             'email': 'somebody@mailinator.com',
             'attributes': {
+                # Supported roles:
+                # 'author'
+                # 'assignee'
+                # 'editor'
+                # 'chair-or-translator'
+                # 'co-investigator'
+                # 'co-inventor'
+                # 'graduate-student'
+                # 'other-inventor'
+                # 'principal-investigator'
+                # 'postdoctoral-researcher'
+                # 'support-staff'
+                # 'Lead'
+                # 'Co lead'
+                # 'Supported by'
                 'role': 'author',
-                'sequence': 'first'
+                # One of 'additional', 'first'
+                'sequence': 'additional'
             }
-        },
-    ...
-    }]
-
-
-.. code-block:: python
-
-    [{
-    ...
+        }],
+        # ISO-629-1: http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
         'language_code': 'en',
-    ...
-    }]
-
-
-.. code-block:: python
-
-    [{
-    ...
-        'country': ('limited', 'US')
-    ...
-    }]
+        'country': {'code': 'US'}
+    }
 
 
 education

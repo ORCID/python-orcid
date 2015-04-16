@@ -19,7 +19,7 @@
 {%- endmacro -%}
 
 {%- macro country(part) -%}
-<common:country visibility="{{ part.visibility }}">{{ part.code }}</common:country>
+<common:country {%- if part.visibility -%}visibility="{{ part.visibility }}"{%- endif -%}>{{ part.code }}</common:country>
 {%- endmacro -%}
 
 {%- macro organization(subrecord) -%}

@@ -208,6 +208,8 @@ class MemberAPI(PublicAPI):
                    'Content-Type': 'application/vnd.orcid+xml',
                    'Authorization': 'Bearer ' + token}
 
+        print xml
+
         if method == requests.delete:
             response = method(url, headers=headers)
         else:
