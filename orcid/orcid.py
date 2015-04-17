@@ -78,7 +78,7 @@ class PublicAPI:
 
         response = function(orcid_id, request_type, id)
         response.raise_for_status()
-        return json.loads(response.content)
+        return json.loads(response.content.decode())
 
     def _get_public_info(self, orcid_id, request_type, id):
         request_url = '%s/%s/%s' % (self._endpoint_public + VERSION,
@@ -101,7 +101,7 @@ class PublicAPI:
 
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        return json.loads(response.content)
+        return json.loads(response.content.decode())
 
 
 class MemberAPI(PublicAPI):
@@ -248,7 +248,7 @@ class MemberAPI(PublicAPI):
 
         response = requests.post(url, data=payload, headers=headers)
         response.raise_for_status()
-        return json.loads(response.content)['access_token']
+        return json.loads(response.content.decode())['access_token']
 
     def _get_member_info(self, orcid_id, request_type, id):
         access_token = self. \

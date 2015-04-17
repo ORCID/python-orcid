@@ -7,18 +7,16 @@ python:
     - "3.4"
 
 install:
-    - pip install pep257 pytest pep8 pytest-cov coverage pytest-cache
+    - pip install pep257 pytest pep8 coverage pytest-cov coveralls
 
 script:
     - python setup.py install
     - py.test
     - pep257 orcid
     - pep8 orcid
-    - coverage run --source=orcid setup.py test
 
 after_success:
     - coveralls
-    - coveralls debug
 
 notifications:
     email: false

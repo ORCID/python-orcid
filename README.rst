@@ -5,8 +5,8 @@ Current state: Adding tests, continuous integration and badges.
 
 .. image:: https://travis-ci.org/MSusik/python-orcid.svg?branch=master
   :target: https://travis-ci.org/MSusik/python-orcid
-.. image:: https://coveralls.io/repos/MSusik/python-orcid/badge.svg
-  :target: https://coveralls.io/r/MSusik/python-orcid
+.. image:: https://coveralls.io/repos/MSusik/python-orcid/badge.svg?branch=master
+  :target: https://coveralls.io/r/MSusik/python-orcid?branch=master
 .. image:: https://pypip.in/download/orcid/badge.svg
   :target: https://pypi.python.org/pypi/orcid/
 .. image:: https://pypip.in/license/orcid/badge.svg
