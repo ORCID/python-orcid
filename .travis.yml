@@ -7,13 +7,13 @@ python:
     - "3.4"
 
 install:
-    - pip install pep257 pytest pep8 coverage pytest-cov coveralls
+    - pip install pep257 pytest pep8 coverage coveralls
 
 script:
-    - python setup.py install
-    - py.test
     - pep257 orcid
     - pep8 orcid
+    - coverage run --source orcid setup.py test
+    - coverage report
 
 after_success:
     - coveralls

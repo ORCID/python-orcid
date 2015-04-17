@@ -11,7 +11,7 @@ Current state: Adding tests, continuous integration and badges.
   :target: https://pypi.python.org/pypi/orcid/
 .. image:: https://pypip.in/license/orcid/badge.svg
   :target: https://pypi.python.org/pypi/orcid/
-.. image:: https://pypip.in/version/orcid/badge.svg
+.. image:: https://pypip.in/py_versions/orcid/badge.svg
   :target: https://pypi.python.org/pypi/orcid/
 .. image:: https://pypip.in/status/orcid/badge.svg
   :target: https://pypi.python.org/pypi/orcid/
