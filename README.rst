@@ -3,7 +3,9 @@ python-orcid
 
 Current state: Adding tests, continuous integration and badges.
 
-.. image:: https://coveralls.io/repos/MSusik/python-orcid/badge.svg :target: https://coveralls.io/r/MSusik/python-orcid 
+.. image:: https://coveralls.io/repos/MSusik/python-orcid/badge.svg
+  :target: https://coveralls.io/r/MSusik/python-orcid
+
 
 Authors
 -------
