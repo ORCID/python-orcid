@@ -10,9 +10,13 @@ install:
     - pip install pep257 pytest pep8
 
 script:
+    - python setup.py install
+    - py.test
     - pep257 orcid
     - pep8 orcid
-    - python setup.py test
+
+after_success:
+    - coveralls
 
 notifications:
     email: false
