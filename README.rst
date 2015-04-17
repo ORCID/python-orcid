@@ -126,6 +126,7 @@ The ``token`` is the string received from OAuth 3-legged authorization.
 
 ``work`` is of the types of records. Every time a record is modified, the type
 has to be specified. The available types are:
+
 * activities
 * education
 * employment
