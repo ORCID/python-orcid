@@ -19,7 +19,7 @@ class PyTest(TestCommand):
 setup(author='Mateusz Susik',
       author_email='mateuszsusik@protonmail.ch',
       classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',

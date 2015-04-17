@@ -13,7 +13,7 @@ script:
     - pep257 orcid
     - pep8 orcid
     - coverage run --omit="*/__init__.py" --source orcid setup.py test
-    - coverage report
+    - coverage report -m
 
 after_success:
     - coveralls
