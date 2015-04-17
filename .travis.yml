@@ -14,9 +14,11 @@ script:
     - py.test
     - pep257 orcid
     - pep8 orcid
+    - coverage run --source=orcid setup.py test
 
 after_success:
     - coveralls
+    - coveralls debug
 
 notifications:
     email: false
