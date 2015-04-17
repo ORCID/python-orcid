@@ -1,8 +1,6 @@
 python-orcid
 ============
 
-Current state: Adding tests, continuous integration and badges.
-
 .. image:: https://travis-ci.org/MSusik/python-orcid.svg?branch=master
   :target: https://travis-ci.org/MSusik/python-orcid
 .. image:: https://coveralls.io/repos/MSusik/python-orcid/badge.svg?branch=master
@@ -23,6 +21,12 @@ Mateusz Susik <mateuszsusik@gmail.com>
 
 Notes
 -----
+
+Currently the library works fully only for sandbox. It uses API version
+2.0_rc1 wherever it's applicable. Use at your own risk for production systems.
+
+The library will be stable when the 2.0_rc1 API will be released.
+
 If there are changes in ORCID API, the library might not work till the changes
 will be implemented by me in this library. Pull requests and submitting issues
 are very welcome.

@@ -12,7 +12,7 @@ install:
 script:
     - pep257 orcid
     - pep8 orcid
-    - coverage run --source orcid setup.py test
+    - coverage run --omit="*/__init__.py" --source orcid setup.py test
     - coverage report
 
 after_success:

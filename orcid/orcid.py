@@ -70,8 +70,8 @@ class PublicAPI:
 
     def _get_info(self, orcid_id, function, request_type, id=None):
         if request_type != "activities" and not id:
-            raise ValueError("""In order to fetch specific record, please specify
-                                the 'id' argument.""")
+            raise ValueError("""In order to fetch specific record,
+                                please specify the 'id' argument.""")
         elif request_type == "activities" and id:
             raise ValueError("""In order to fetch activities summary, the 'id'
                                 argument is redundant.""")
