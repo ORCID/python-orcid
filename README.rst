@@ -1,10 +1,7 @@
 python-orcid
 ============
 
-Current state
--------------
-
-Adding tests and continuos integration.
+Current state: Adding tests, continuous integration and badges.
 
 Authors
 -------
@@ -20,7 +17,9 @@ are very welcome.
 Installation
 ------------
 
-TODO, will be released on PyPI.
+.. code-block:: python
+
+    pip install orcid
 
 Introduction
 ------------
@@ -127,12 +126,12 @@ The ``token`` is the string received from OAuth 3-legged authorization.
 
 ``work`` is of the types of records. Every time a record is modified, the type
 has to be specified. The available types are:
-- activities
-- education
-- employment
-- funding
-- peer-review
-- work
+* activities
+* education
+* employment
+* funding
+* peer-review
+* work
 
 The last argument is the record itself. You can pass a python dictionary
 (see the explanation below) or an xml.

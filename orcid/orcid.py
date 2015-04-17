@@ -34,10 +34,10 @@ class PublicAPI:
         Parameters
         ----------
         :param orcid_id: string
-            Id of the queried author
+            Id of the queried author.
         :param request_type: string
             One of 'activities', 'education', 'employment', 'funding',
-            'peer-review', 'work'
+            'peer-review', 'work'.
         :param id: string
             The id of the queried work. Must be given if 'request_type' is not
             'activities'.
@@ -52,9 +52,16 @@ class PublicAPI:
         Parameters
         ----------
         :param query: string
-            Query in line with the chosen method
+            Query in line with the chosen method.
         :param method: string
-            One of 'lucene', ''
+            One of 'lucene', 'edismax', 'dismax'
+        :param start: string
+            Index of the first record requested. Use for pagination.
+        :param rows: string
+            Number of records requested. Use for pagination.
+        :search_field: string
+            Scope used for seaching. The default one allows to search
+            everywhere.
         """
         headers = {'Accept': 'application/orcid+json'}
 
@@ -119,6 +126,23 @@ class MemberAPI(PublicAPI):
         PublicAPI.__init__(self, sandbox)
 
     def add_record(self, orcid_id, token, request_type, data=None, xml=None):
+        """Add a record to a profile.
+
+        Parameters
+        ----------
+        :param orcid_id: string
+            Id of the author.
+        :param token: string
+            Token received from OAuth 2 3-legged authorization.
+        :param request_type: string
+            One of 'activities', 'education', 'employment', 'funding',
+            'peer-review', 'work'.
+        :param data: dict
+            The record in Python-friendly format. Required if xml is not
+            provided.
+        :param xml: string
+            The record in ORCID XML format. Optional.
+        """
         self._update_activities(orcid_id, token, requests.post, request_type,
                                 data, xml)
 
@@ -128,10 +152,10 @@ class MemberAPI(PublicAPI):
         Parameters
         ----------
         :param orcid_id: string
-            Id of the queried author
+            Id of the queried author.
         :param request_type: string
             One of 'activities', 'education', 'employment', 'funding',
-            'peer-review', 'work'
+            'peer-review', 'work'.
         :param response_format: string
             One of json, xml.
         :param id: string
@@ -142,13 +166,42 @@ class MemberAPI(PublicAPI):
                               id)
 
     def remove_record(self, orcid_id, token, request_type, id):
+        """Add a record to a profile.
+
+        Parameters
+        ----------
+        :param orcid_id: string
+            Id of the author.
+        :param token: string
+            Token received from OAuth 2 3-legged authorization.
+        :param request_type: string
+            One of 'activities', 'education', 'employment', 'funding',
+            'peer-review', 'work'.
+        :param id: string
+            The id of the record. Can be retrieved using read_record_* method.
+            In the result of it, it will be called 'put-code'.
+        """
         self._update_activities(orcid_id, token, requests.delete, request_type,
                                 None, None, id)
 
     def search_member(self, query, method="lucene", start=None, rows=None,
                       search_field="orcid-bio"):
-        """TO DO."""
+        """Search the ORCID database.
 
+        Parameters
+        ----------
+        :param query: string
+            Query in line with the chosen method.
+        :param method: string
+            One of 'lucene', 'edismax', 'dismax'
+        :param start: string
+            Index of the first record requested. Use for pagination.
+        :param rows: string
+            Number of records requested. Use for pagination.
+        :search_field: string
+            Scope used for seaching. The default one allows to search
+            everywhere.
+        """
         access_token = self. \
             _get_access_token_from_orcid('/read-public')
 
@@ -160,6 +213,26 @@ class MemberAPI(PublicAPI):
 
     def update_record(self, orcid_id, token, request_type, id, data=None,
                       xml=None):
+        """Add a record to a profile.
+
+        Parameters
+        ----------
+        :param orcid_id: string
+            Id of the author.
+        :param token: string
+            Token received from OAuth 2 3-legged authorization.
+        :param request_type: string
+            One of 'activities', 'education', 'employment', 'funding',
+            'peer-review', 'work'.
+        :param id: string
+            The id of the record. Can be retrieved using read_record_* method.
+            In the result of it, it will be called 'put-code'.
+        :param data: dict
+            The record in Python-friendly format. Required if xml is not
+            provided.
+        :param xml: string
+            The record in ORCID XML format. Optional.
+        """
         self._update_activities(orcid_id, token, requests.put, request_type,
                                 data, xml, id)
 
