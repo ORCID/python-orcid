@@ -9,6 +9,12 @@ Current state: Adding tests, continuous integration and badges.
   :target: https://coveralls.io/r/MSusik/python-orcid
 .. image:: https://pypip.in/download/orcid/badge.svg
   :target: https://pypi.python.org/pypi/orcid/
+.. image:: https://pypip.in/license/orcid/badge.svg
+  :target: https://pypi.python.org/pypi/orcid/
+.. image:: https://pypip.in/version/orcid/badge.svg
+  :target: https://pypi.python.org/pypi/orcid/
+.. image:: https://pypip.in/status/orcid/badge.svg
+  :target: https://pypi.python.org/pypi/orcid/
 
 Authors
 -------
