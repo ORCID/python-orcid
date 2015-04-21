@@ -45,7 +45,7 @@ def test_read_record_public(publicAPI):
 
     with pytest.raises(ValueError) as excinfo:
         publicAPI.read_record_public('0000-0002-3874-0894', 'work')
-    assert "please specify the 'id' argument" in str(excinfo.value)
+    assert "please specify the 'put_code' argument" in str(excinfo.value)
 
 
 @pytest.fixture

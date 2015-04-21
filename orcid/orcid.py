@@ -9,8 +9,10 @@ import requests
 SEARCH_VERSION = "/v1.2"
 VERSION = "/v2.0_rc1"
 
+__version__ = "0.3.0"
 
-class PublicAPI:
+
+class PublicAPI(object):
 
     """Public API."""
 
@@ -28,7 +30,7 @@ class PublicAPI:
         else:
             self._endpoint_public = "https://pub.orcid.org"
 
-    def read_record_public(self, orcid_id, request_type, id=None):
+    def read_record_public(self, orcid_id, request_type, put_code=None):
         """Get the public info about the researcher.
 
         Parameters
@@ -38,7 +40,7 @@ class PublicAPI:
         :param request_type: string
             One of 'activities', 'education', 'employment', 'funding',
             'peer-review', 'work'.
-        :param id: string
+        :param put_code: string
             The id of the queried work. Must be given if 'request_type' is not
             'activities'.
 
@@ -48,7 +50,7 @@ class PublicAPI:
             Records.
         """
         return self._get_info(orcid_id, self._get_public_info, request_type,
-                              id)
+                              put_code)
 
     def search_public(self, query, method="lucene", start=None, rows=None,
                       search_field="orcid-bio"):
@@ -81,23 +83,23 @@ class PublicAPI:
         return self._search(query, method, start, rows, search_field,
                             headers, self._endpoint_public)
 
-    def _get_info(self, orcid_id, function, request_type, id=None):
-        if request_type != "activities" and not id:
+    def _get_info(self, orcid_id, function, request_type, put_code=None):
+        if request_type != "activities" and not put_code:
             raise ValueError("""In order to fetch specific record,
-                                please specify the 'id' argument.""")
-        elif request_type == "activities" and id:
+                                please specify the 'put_code' argument.""")
+        elif request_type == "activities" and put_code:
             raise ValueError("""In order to fetch activities summary, the 'id'
                                 argument is redundant.""")
 
-        response = function(orcid_id, request_type, id)
+        response = function(orcid_id, request_type, put_code)
         response.raise_for_status()
         return json.loads(response.content.decode())
 
-    def _get_public_info(self, orcid_id, request_type, id):
+    def _get_public_info(self, orcid_id, request_type, put_code):
         request_url = '%s/%s/%s' % (self._endpoint_public + VERSION,
                                     orcid_id, request_type)
-        if id:
-            request_url += '/%s' % id
+        if put_code:
+            request_url += '/%s' % put_code
         headers = {'Accept': 'application/orcid+json'}
 
         return requests.get(request_url, headers=headers)
@@ -106,7 +108,7 @@ class PublicAPI:
                 endpoint):
 
         url = endpoint + SEARCH_VERSION + "/search/" + \
-            search_field + "/?q=" + query
+            search_field + "/?defType=" + method + "&q=" + query
         if start:
             url += "&start=%s" % start
         if rows:
@@ -213,7 +215,7 @@ class MemberAPI(PublicAPI):
 
         return response['access_token']
 
-    def read_record_member(self, orcid_id, request_type, id=None):
+    def read_record_member(self, orcid_id, request_type, put_code=None):
         """Get the member info about the researcher.
 
         Parameters
@@ -225,7 +227,7 @@ class MemberAPI(PublicAPI):
             'peer-review', 'work'.
         :param response_format: string
             One of json, xml.
-        :param id: string
+        :param put_code: string
             The id of the queried work. Must be given if 'request_type' is not
             'activities'.
 
@@ -235,9 +237,9 @@ class MemberAPI(PublicAPI):
             Records.
         """
         return self._get_info(orcid_id, self._get_member_info, request_type,
-                              id)
+                              put_code)
 
-    def remove_record(self, orcid_id, token, request_type, id):
+    def remove_record(self, orcid_id, token, request_type, put_code):
         """Add a record to a profile.
 
         Parameters
@@ -249,12 +251,12 @@ class MemberAPI(PublicAPI):
         :param request_type: string
             One of 'activities', 'education', 'employment', 'funding',
             'peer-review', 'work'.
-        :param id: string
+        :param put_code: string
             The id of the record. Can be retrieved using read_record_* method.
             In the result of it, it will be called 'put-code'.
         """
         self._update_activities(orcid_id, token, requests.delete, request_type,
-                                None, None, id)
+                                None, None, put_code)
 
     def search_member(self, query, method="lucene", start=None, rows=None,
                       search_field="orcid-bio"):
@@ -291,7 +293,7 @@ class MemberAPI(PublicAPI):
         return self._search(query, method, start, rows, search_field, headers,
                             self._endpoint_member)
 
-    def update_record(self, orcid_id, token, request_type, id, data=None,
+    def update_record(self, orcid_id, token, request_type, put_code, data=None,
                       xml=None):
         """Add a record to a profile.
 
@@ -304,7 +306,7 @@ class MemberAPI(PublicAPI):
         :param request_type: string
             One of 'activities', 'education', 'employment', 'funding',
             'peer-review', 'work'.
-        :param id: string
+        :param put_code: string
             The id of the record. Can be retrieved using read_record_* method.
             In the result of it, it will be called 'put-code'.
         :param data: dict
@@ -314,7 +316,7 @@ class MemberAPI(PublicAPI):
             The record in ORCID XML format. Optional.
         """
         self._update_activities(orcid_id, token, requests.put, request_type,
-                                data, xml, id)
+                                data, xml, put_code)
 
     def _authenticate(self, user_id, password, redirect_uri, session, scope):
         response = session.post(self._auth_url,
@@ -373,25 +375,25 @@ class MemberAPI(PublicAPI):
         response.raise_for_status()
         return json.loads(response.content.decode())['access_token']
 
-    def _get_member_info(self, orcid_id, request_type, id):
+    def _get_member_info(self, orcid_id, request_type, put_code):
         access_token = self. \
             _get_access_token_from_orcid('/activities/read-limited')
         request_url = '%s/%s/%s' % (self._endpoint_member + VERSION,
                                     orcid_id, request_type)
-        if id:
-            request_url += '/%s' % id
+        if put_code:
+            request_url += '/%s' % put_code
         headers = {'Accept': 'application/orcid+json',
                    'Authorization': 'Bearer %s' % access_token}
         return requests.get(request_url, headers=headers)
 
     def _update_activities(self, orcid_id, token, method, request_type, data,
-                           xml, id=None):
+                           xml, put_code=None):
         url = "%s/%s/%s" % (self._endpoint_member + VERSION, orcid_id,
                             request_type)
-        if id:
-            url += ('/%s' % id)
+        if put_code:
+            url += ('/%s' % put_code)
             if not xml and method != requests.delete:
-                data['put_code'] = id
+                data['put_code'] = put_code
 
         if not xml and method != requests.delete:
             current_path = os.path.dirname(os.path.abspath(__file__))
@@ -408,5 +410,4 @@ class MemberAPI(PublicAPI):
             response = method(url, headers=headers)
         else:
             response = method(url, xml, headers=headers)
-        code = response.status_code
         response.raise_for_status()
