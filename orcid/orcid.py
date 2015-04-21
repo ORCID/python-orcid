@@ -140,6 +140,10 @@ class MemberAPI(PublicAPI):
             self._token_url = "https://api.sandbox.orcid.org/oauth/token"
         else:
             self._endpoint_member = "https://api.orcid.org"
+            self._auth_url = 'https://orcid.org/signin/auth.json'
+            self._authorize_url = \
+                'https://orcid.org/oauth/custom/authorize.json'
+            self._token_url = "https://api.orcid.org/oauth/token"
         PublicAPI.__init__(self, sandbox)
 
     def add_record(self, orcid_id, token, request_type, data=None, xml=None):

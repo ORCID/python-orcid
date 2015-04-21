@@ -137,7 +137,7 @@ user:
 
 .. code-block:: python
 
-    id = api.get_orcid(author_id, author_password, institution_redirect_uri)
+    orcid = api.get_orcid(author_id, author_password, institution_redirect_uri)
 
 Token
 -----
