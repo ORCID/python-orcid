@@ -41,6 +41,11 @@ class PublicAPI:
         :param id: string
             The id of the queried work. Must be given if 'request_type' is not
             'activities'.
+
+        Returns
+        -------
+        :returns: dict
+            Records.
         """
         return self._get_info(orcid_id, self._get_public_info, request_type,
                               id)
@@ -62,6 +67,14 @@ class PublicAPI:
         :search_field: string
             Scope used for seaching. The default one allows to search
             everywhere.
+
+        Returns
+        -------
+        :returns: dict
+            Search result with error description available. The results can
+            be obtained by accessing keys 'orcid-search-results' and
+            then 'orcid-search-result'. To get the number of all results,
+            access the key 'orcid-search-results' and then 'num-found'.
         """
         headers = {'Accept': 'application/orcid+json'}
 
@@ -121,6 +134,10 @@ class MemberAPI(PublicAPI):
         self._secret = institution_secret
         if sandbox:
             self._endpoint_member = "https://api.sandbox.orcid.org"
+            self._auth_url = 'https://sandbox.orcid.org/signin/auth.json'
+            self._authorize_url = \
+                'https://sandbox.orcid.org/oauth/custom/authorize.json'
+            self._token_url = "https://api.sandbox.orcid.org/oauth/token"
         else:
             self._endpoint_member = "https://api.orcid.org"
         PublicAPI.__init__(self, sandbox)
@@ -146,6 +163,37 @@ class MemberAPI(PublicAPI):
         self._update_activities(orcid_id, token, requests.post, request_type,
                                 data, xml)
 
+    def get_user_orcid(self, user_id, password, redirect_uri):
+        """Get the user orcid from authentication process."""
+        session = requests.session()
+        response = self._authenticate(user_id, password, redirect_uri, session,
+                                      '/authenticate')
+
+        return response['orcid']
+
+    def get_token(self, user_id, password, redirect_uri):
+        """Get the token for updating the records.
+
+        Parameters
+        ----------
+        :param user_id: string
+            The id of the user used for authentication.
+        :param password: string
+            The user password.
+        :param redirect_uri: string
+            The redirect uri of the institution.
+
+        Returns
+        -------
+        :returns: string
+            The token.
+        """
+        session = requests.session()
+        response = self._authenticate(user_id, password, redirect_uri, session,
+                                      '/activities/update')
+
+        return response['access_token']
+
     def read_record_member(self, orcid_id, request_type, id=None):
         """Get the member info about the researcher.
 
@@ -161,6 +209,11 @@ class MemberAPI(PublicAPI):
         :param id: string
             The id of the queried work. Must be given if 'request_type' is not
             'activities'.
+
+        Returns
+        -------
+        :returns: dictionary
+            Records.
         """
         return self._get_info(orcid_id, self._get_member_info, request_type,
                               id)
@@ -201,6 +254,14 @@ class MemberAPI(PublicAPI):
         :search_field: string
             Scope used for seaching. The default one allows to search
             everywhere.
+
+        Returns
+        -------
+        :returns: dict
+            Search result with error description available. The results can
+            be obtained by accessing keys 'orcid-search-results' and
+            then 'orcid-search-result'. To get the number of all results,
+            access the key 'orcid-search-results' and then 'num-found'.
         """
         access_token = self. \
             _get_access_token_from_orcid('/read-public')
@@ -235,6 +296,49 @@ class MemberAPI(PublicAPI):
         """
         self._update_activities(orcid_id, token, requests.put, request_type,
                                 data, xml, id)
+
+    def _authenticate(self, user_id, password, redirect_uri, session, scope):
+        response = session.post(self._auth_url,
+                                data={'userId': user_id, 'password': password})
+        response.raise_for_status()
+
+        response = session.get('https://sandbox.orcid.org/oauth/' +
+                               'authorize?client_id=' + self._key +
+                               '&response_type=code&scope=' + scope +
+                               '&redirect_uri=' + redirect_uri)
+        response.raise_for_status()
+
+        json_dict = {
+            "clientId": self._key,
+            "redirectUri": redirect_uri,
+            "scope": scope,
+            "responseType": "code",
+            "approved": "true",
+            "persistentTokenEnabled": "true"
+        }
+        headers = {
+           'Accept': 'text/plain',
+           'Content-Type': 'application/json;charset=UTF-8'
+        }
+        response = session.post(self._authorize_url,
+                                data=json.dumps(json_dict),
+                                headers=headers
+                                )
+        response.raise_for_status()
+        uri = json.loads(response.text)['redirectUri']['value']
+        authorization_code = uri[uri.rfind('=') + 1:]
+
+        token_dict = {
+            "client_id": self._key,
+            "client_secret": self._secret,
+            "grant_type": "authorization_code",
+            "code": authorization_code,
+            "redirect_uri": redirect_uri,
+        }
+        response = session.post(self._token_url, data=token_dict,
+                                headers={'Accept': 'application/json'})
+        response.raise_for_status()
+        return json.loads(response.text)
 
     def _get_access_token_from_orcid(self, scope):
         payload = {'client_id': self._key,
