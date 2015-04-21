@@ -116,3 +116,20 @@ def test_work_simple(memberAPI):
                             'work', put_code)
     added_works = get_added_works()
     assert len(added_works) == 0
+
+
+def test_get_orcid(memberAPI):
+    """Test fetching user id from authentication."""
+    orcid = memberAPI.get_user_orcid(os.environ['USER_ID'],
+                                     os.environ['USER_PASSWORD'],
+                                     os.environ['MEMBER_REDIRECT'])
+    assert orcid == "0000-0002-3874-0894"
+
+
+def test_get_token(memberAPI):
+    """Test getting token."""
+    token = memberAPI.get_token(os.environ['USER_ID'],
+                                os.environ['USER_PASSWORD'],
+                                os.environ['MEMBER_REDIRECT'])
+    # The token doesn't change on the sandbox
+    assert token == os.environ['USER_ACTIVITIES_TOKEN']
