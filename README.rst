@@ -19,17 +19,6 @@ Authors
 
 Mateusz Susik <mateuszsusik@gmail.com>
 
-Notes
------
-
-Currently the library works fully only for sandbox. It uses API version
-2.0_rc1 wherever it's applicable. Use at your own risk for production systems.
-
-The library will be stable when the 2.0_rc1 API will be released.
-
-If there are changes in ORCID API, the library might not work till the changes
-will be implemented by me in this library. Pull requests and submitting issues
-are very welcome.
 
 Installation
 ------------
@@ -37,6 +26,41 @@ Installation
 .. code-block:: python
 
     pip install orcid
+
+Notes
+-----
+
+Currently the library works fully only for the sandbox. It uses API version
+2.0_rc1 wherever it's applicable. Use at your own risk for production systems.
+
+The library will be stable when the 2.0_rc1 API is released.
+
+If there are changes in ORCID API, the library might not work till the changes
+are implemented by me in this library. Pull requests and submitting issues
+are very welcome. Please read CONTRIBUTING.rst in case of suggestions.
+
+Error handling
+--------------
+
+The methods of this library might throw client or server errors. An error is an
+exception coming from the proven
+`requests <http://docs.python-requests.org/en/latest/>`_ library. The usual way
+to work with them should be:
+
+.. code-block:: python
+  
+    from requests import RequestException
+    import orcid
+    api = orcid.MemberAPI(key, secret, sandbox=True)
+    try:
+        api.add_record(author-orcid, token, 'work',
+                       {'title': 'Title', 'type': 'artistic-performance'})
+    except RequestException as e:
+        # Here the error should be handled. As the exception message might be
+        # too generic, additional info can be obtained by:
+        print(e.response.text)
+        # The response is a requests Response instance.
+
 
 Introduction
 ------------
@@ -105,23 +129,26 @@ institution secret have to be provided.
 
 All the methods from the public API are available in the member API.
 
+Getting ORCID
+-------------
+
+If the ORCID of an author is not known, one can obtain it by authorizing the
+user:
+
+.. code-block:: python
+
+    id = api.get_orcid(author_id, author_password, institution_redirect_uri)
+
 Token
 -----
 
-So far, the library doesn't provide any way to get the user token. The feature
-will be implemented in the future, though.
+In order to update records, the ``token`` is needed. The tokens come from
+OAuth 3-legged authorization. You can perform the authorization using this
+library:
 
-To obtain a token, you can use one of the libraries below:
+.. code-block:: python
 
-* `OAuthLib <https://pypi.python.org/pypi/oauthlib>`_
-* `RAuth <https://rauth.readthedocs.org/en/latest/>`_
-* `Requests OAuth <https://github.com/maraujop/requests-oauth>`_
-* `Django OAuth Toolkit <https://github.com/evonove/django-oauth-toolkit>`_
-* `Flask OAuthLib <https://github.com/lepture/flask-oauthlib>`_
-* `Flask Dance <https://github.com/singingwolfboy/flask-dance>`_
-
-If you want more options or you know more libraries worth recommending, please
-check `this page. <http://oauth.net/code/>`_
+    token = api.get_token(author_id, author_password, institution_redirect_uri)
 
 Adding/updating/removing records
 --------------------------------
@@ -130,18 +157,18 @@ Using the member API, one can add/update/remove records from the ORCID profile.
 
 .. code-block:: python
 
-    api.add_record('author-orcid', 'token', 'work',
+    api.add_record(author-orcid, token, 'work',
                    {'title': 'Title', 'type': 'artistic-performance'})
 
     # Change the type to 'other'
-    api.update_record('author-orcid', 'token', 'work', 'put-code',
+    api.update_record(author-orcid, token, 'work', put-code,
                       {'type': 'other'})
-    api.remove_record('author-orcid', 'token', 'work', 'put-code')
+    api.remove_record(author-orcid, token, 'work', put-code)
 
 
 The ``token`` is the string received from OAuth 3-legged authorization.
 
-``work`` is of the types of records. Every time a record is modified, the type
+``work`` is one of the types of records. Every time a record is modified, the type
 has to be specified. The available types are:
 
 * activities
@@ -164,7 +191,7 @@ If xml is not provided, it will be rendered by the library. Here are some
 examplary dictionaries that can be passed as an argument:
 
 work
-----
+~~~~
 
 In case of doubts, see `work XML <http://members.orcid.org/api/xml-orcid-works>`_.
 
@@ -258,7 +285,7 @@ An example where all the fields are filled.
 
 
 education or employment
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 In case of doubts, see `affiliation XML <http://members.orcid.org/api/xml-affiliations>`_.
 
@@ -309,7 +336,7 @@ An example with all the fields used.
 
 
 funding
--------
+~~~~~~~
 
 In case of doubts, see `funding XML <http://members.orcid.org/api/xml-funding>`_.
 
@@ -394,21 +421,6 @@ An example with all the fields used.
     }
 
 peer-rewiev
------------
+~~~~~~~~~~~
 
 TBA
-
-additional options
-------------------
-
-Every work/affiliation/funding can have it's privacy level set by setting
-``visibility`` field:
-
-.. code-block:: python
-
-    {
-    ...
-        # one of 'private', 'limited', 'public'
-        'visibility': 'private',
-    ...
-    }

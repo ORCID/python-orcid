@@ -164,7 +164,22 @@ class MemberAPI(PublicAPI):
                                 data, xml)
 
     def get_user_orcid(self, user_id, password, redirect_uri):
-        """Get the user orcid from authentication process."""
+        """Get the user orcid from authentication process.
+
+        Parameters
+        ----------
+        :param user_id: string
+            The id of the user used for authentication.
+        :param password: string
+            The user password.
+        :param redirect_uri: string
+            The redirect uri of the institution.
+
+        Returns
+        -------
+        :returns: string
+            The orcid.
+        """
         session = requests.session()
         response = self._authenticate(user_id, password, redirect_uri, session,
                                       '/authenticate')
@@ -389,6 +404,5 @@ class MemberAPI(PublicAPI):
             response = method(url, headers=headers)
         else:
             response = method(url, xml, headers=headers)
-
         code = response.status_code
         response.raise_for_status()
