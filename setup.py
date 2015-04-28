@@ -43,7 +43,7 @@ setup(author='Mateusz Susik',
       name='orcid',
       package_data={'orcid': ['templates/*.xml']},
       packages=['orcid'],
-      tests_require=['pytest', 'coverage'],
+      tests_require=['pytest', 'coverage', 'httpretty'],
       url='https://github.com/MSusik/python-orcid',
-      version='0.3.0'
+      version='0.3.1'
       )

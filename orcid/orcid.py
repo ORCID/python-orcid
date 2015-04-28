@@ -9,7 +9,7 @@ import requests
 SEARCH_VERSION = "/v1.2"
 VERSION = "/v2.0_rc1"
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 
 class PublicAPI(object):
@@ -90,7 +90,6 @@ class PublicAPI(object):
         elif request_type == "activities" and put_code:
             raise ValueError("""In order to fetch activities summary, the 'id'
                                 argument is redundant.""")
-
         response = function(orcid_id, request_type, put_code)
         response.raise_for_status()
         return json.loads(response.content.decode())
@@ -101,7 +100,6 @@ class PublicAPI(object):
         if put_code:
             request_url += '/%s' % put_code
         headers = {'Accept': 'application/orcid+json'}
-
         return requests.get(request_url, headers=headers)
 
     def _search(self, query, method, start, rows, search_field, headers,
@@ -328,6 +326,7 @@ class MemberAPI(PublicAPI):
                                '&response_type=code&scope=' + scope +
                                '&redirect_uri=' + redirect_uri)
         response.raise_for_status()
+        session.close()
 
         json_dict = {
             "clientId": self._key,
@@ -346,6 +345,8 @@ class MemberAPI(PublicAPI):
                                 headers=headers
                                 )
         response.raise_for_status()
+        session.close()
+
         uri = json.loads(response.text)['redirectUri']['value']
         authorization_code = uri[uri.rfind('=') + 1:]
 
