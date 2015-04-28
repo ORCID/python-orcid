@@ -12,7 +12,7 @@ WORK_NAME = u'WY51MF0OCMU37MVGMUX1M92G6FR1IQUW'
 
 @pytest.fixture
 def search_result():
-    """Get the XML from the search engine."""
+    """XML from the search engine."""
     return '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
               <orcid-message xmlns="http://www.orcid.org/ns/orcid">
               <message-version>1.2</message-version>
@@ -37,37 +37,11 @@ def search_result():
               </orcid-message>
            '''
 
+
 @pytest.fixture
-def publicAPI():
-    """Get publicAPI handler."""
-    return PublicAPI(sandbox=True)
-
-
-@httpretty.activate()
-def test_search_public(publicAPI, search_result):
-    """Test search_public."""
-    SEARCH_URI = "https://pub.sandbox.orcid.org/v1.2/search" + \
-        "/orcid-bio/?defType=lucene&q=(\w+)"
-
-    httpretty.register_uri(httpretty.GET,
-                           re.compile(SEARCH_URI),
-                           body=search_result,
-                           content_type='application/orcid+json')
-    results = publicAPI.search_public('text:%s' % WORK_NAME)
-    assert results['orcid-search-results']['orcid-search-result'][0][
-                   'orcid-profile']['orcid-identifier'][
-                   'path'] == u'0000-0002-3874-0894'
-
-    results = publicAPI.search_public('family-name:Sanchez', start=2, rows=6)
-    # Just check if the request suceeded
-    assert results['error-desc'] is None
-
-
-@httpretty.activate()
-def test_read_record_public(publicAPI):
-    """Test reading records."""
-    READ_URI = ""
-    body_all = """
+def body_all():
+    """JSON describing the whole profile activity."""
+    return """
         {
           "educations" : null,
           "employments" : null,
@@ -119,7 +93,11 @@ def test_read_record_public(publicAPI):
         }
     """
 
-    body_single_work = """
+
+@pytest.fixture
+def body_single_work():
+    """JSON describing single work."""
+    return """
         {
           "put-code" : "477441",
           "path" : "/0000-0002-3874-0894/work/477441",
@@ -167,6 +145,52 @@ def test_read_record_public(publicAPI):
         }
     """
 
+
+@pytest.fixture
+def token_response():
+    """JSON with a token."""
+    return """
+        {
+         "access_token":"token",
+         "token_type":"bearer",
+         "expires_in":631138518,
+         "scope":"all of them :)",
+         "orcid":null
+        }
+    """
+
+
+@pytest.fixture
+def publicAPI():
+    """Get publicAPI handler."""
+    return PublicAPI(sandbox=True)
+
+
+@httpretty.activate
+def test_search_public(publicAPI, search_result):
+    """Test search_public."""
+    SEARCH_URI = "https://pub.sandbox.orcid.org/v1.2/search" + \
+        "/orcid-bio/?defType=lucene&q=(\w+)"
+
+    httpretty.register_uri(httpretty.GET,
+                           re.compile(SEARCH_URI),
+                           body=search_result,
+                           content_type='application/orcid+json')
+    results = publicAPI.search_public('text:%s' % WORK_NAME)
+    assert results['orcid-search-results']['orcid-search-result'][0][
+                   'orcid-profile']['orcid-identifier'][
+                   'path'] == u'0000-0002-3874-0894'
+
+    results = publicAPI.search_public('family-name:Sanchez', start=2, rows=6)
+    # Just check if the request suceeded
+    assert results['error-desc'] is None
+
+
+@httpretty.activate
+def test_read_record_public(publicAPI, body_all, body_single_work):
+    """Test reading records."""
+    READ_URI = ""
+
     all_works_url = "https://pub.sandbox.orcid.org/v2.0_rc1" + \
         "/0000-0002-3874-0894/activities"
     single_works_url = "https://pub.sandbox.orcid.org/v2.0_rc1" + \
@@ -208,23 +232,13 @@ def memberAPI():
                      sandbox=True)
 
 
-@httpretty.activate()
-def test_search_member(memberAPI, search_result):
+@httpretty.activate
+def test_search_member(memberAPI, search_result, token_response):
     """Test search_member."""
     SEARCH_URI = "https://api.sandbox.orcid.org/v1.2/search" + \
         "/orcid-bio/?defType=lucene&q=(\w+)"
 
     TOKEN_URI = "https://api.sandbox.orcid.org/oauth/token"
-
-    token_response = """
-        {
-         "access_token":"70472ca1-5d65-47fa-be3b-763e27ffc2d4",
-         "token_type":"bearer",
-         "expires_in":631138518,
-         "scope":"all of them :)",
-         "orcid":null
-        }
-    """
 
     httpretty.register_uri(httpretty.POST, TOKEN_URI,
                            body=token_response,
@@ -233,7 +247,7 @@ def test_search_member(memberAPI, search_result):
     httpretty.register_uri(httpretty.GET, SEARCH_URI,
                            body=search_result,
                            content_type='application/orcid+json',
-                           forcing_headers={
+                           adding_headers={
                                "Authorization": "Bearer token"
                            })
     results = memberAPI.search_member('text:%s' % WORK_NAME)
@@ -242,8 +256,36 @@ def test_search_member(memberAPI, search_result):
                    'path'] == u'0000-0002-3874-0894'
 
 
-def test_read_record_member(memberAPI):
+@httpretty.activate
+def test_read_record_member(memberAPI, token_response):
     """Test reading records."""
+    TOKEN_URI = "https://api.sandbox.orcid.org/oauth/token"
+
+    httpretty.register_uri(httpretty.POST, TOKEN_URI,
+                           body=token_response,
+                           content_type="application/json")
+
+    all_works_url = "https://api.sandbox.orcid.org/v2.0_rc1" + \
+        "/0000-0002-3874-0894/activities"
+    single_works_url = "https://api.sandbox.orcid.org/v2.0_rc1" + \
+        "/0000-0002-3874-0894/work/477441"
+
+    httpretty.register_uri(httpretty.GET,
+                           all_works_url,
+                           body=body_all,
+                           content_type='application/orcid+json',
+                           adding_headers={
+                               "Authorization": "Bearer token"
+                           })
+
+    httpretty.register_uri(httpretty.GET,
+                           single_works_url,
+                           body=body_single_work,
+                           content_type='application/orcid+json',
+                           adding_headers={
+                               "Authorization": "Bearer token"
+                           })
+
     activities = memberAPI.read_record_member('0000-0002-3874-0894',
                                               'activities')
     first_work = activities['works']['group'][0]['work-summary'][0]
@@ -255,6 +297,7 @@ def test_read_record_member(memberAPI):
     assert work['type'] == u'BOOK'
 
 
+@httpretty.activate
 def test_work_simple(memberAPI):
     """Test adding, updating and removing an example of a simple work."""
     title = "API Test Title " + str(sys.version_info[0]) + "." + \
@@ -267,6 +310,8 @@ def test_work_simple(memberAPI):
                                        0]['title']['title'][
                                        'value'] == title,
                            activities['works']['group']))
+
+    httpretty.register_uri(httpretty.POST, "https://api.sandbox.orcid.org/activitie")
 
     # Add
     work = {
