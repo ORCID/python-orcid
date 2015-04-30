@@ -1,6 +1,5 @@
 """Tests for ORCID library."""
 
-import httpretty
 import json
 import pytest
 import re
@@ -9,6 +8,40 @@ import sys
 from orcid import MemberAPI, PublicAPI
 
 WORK_NAME = u'WY51MF0OCMU37MVGMUX1M92G6FR1IQUW'
+
+
+def import_httpretty():
+    """Import HTTPretty and monkey patch Python 3.4 issue.
+
+    See https://github.com/gabrielfalcao/HTTPretty/pull/193 and
+    as well as https://github.com/gabrielfalcao/HTTPretty/issues/221.
+    """
+    import sys
+    PY34 = sys.version_info[0] == 3 and sys.version_info[1] == 4
+    if not PY34:
+        import httpretty
+    else:
+        import functools
+        import socket
+        old_SocketType = socket.SocketType
+
+        import httpretty
+        from httpretty import core
+
+        def sockettype_patch(f):
+            @functools.wraps(f)
+            def inner(*args, **kwargs):
+                f(*args, **kwargs)
+                socket.SocketType = old_SocketType
+                socket.__dict__['SocketType'] = old_SocketType
+            return inner
+
+        core.httpretty.disable = sockettype_patch(
+            httpretty.httpretty.disable
+        )
+    return httpretty
+
+httpretty = import_httpretty()
 
 
 @pytest.fixture
