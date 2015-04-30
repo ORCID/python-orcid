@@ -111,7 +111,6 @@ class PublicAPI(object):
             url += "&start=%s" % start
         if rows:
             url += "&rows=%s" % rows
-
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         return json.loads(response.content.decode())
@@ -325,6 +324,7 @@ class MemberAPI(PublicAPI):
                                'authorize?client_id=' + self._key +
                                '&response_type=code&scope=' + scope +
                                '&redirect_uri=' + redirect_uri)
+
         response.raise_for_status()
         session.close()
 
