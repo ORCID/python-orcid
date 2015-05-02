@@ -6,15 +6,12 @@ import re
 import sys
 
 from orcid import MemberAPI, PublicAPI
-from .helpers import import_httpretty
+from .helpers import httpretty
 from .helpers import body_all, body_none, body_single_work
 from .helpers import authorization_code, search_result
 from .helpers import token_json, token_response
 
 WORK_NAME = u'WY51MF0OCMU37MVGMUX1M92G6FR1IQUW'
-
-
-httpretty = import_httpretty()
 
 
 @pytest.fixture
@@ -23,8 +20,8 @@ def publicAPI():
     return PublicAPI(sandbox=True)
 
 
-@httpretty.activate
-def test_search_public(publicAPI, search_result):
+@httpretty.activate_(publicAPI, search_result)
+def test_search_public():
     """Test search_public."""
     search_url = "https\:\/\/pub\.sandbox\.orcid\.org\/v1\.2\/search\/" + \
         "orcid-bio\/\?defType\=lucene&q\=.+"
@@ -45,8 +42,8 @@ def test_search_public(publicAPI, search_result):
     assert results['error-desc'] is None
 
 
-@httpretty.activate
-def test_read_record_public(publicAPI, body_all, body_single_work):
+@httpretty.activate_(publicAPI, body_all, body_single_work)
+def test_read_record_public():
     """Test reading records."""
     all_works_url = "https://pub.sandbox.orcid.org/v2.0_rc1" + \
         "/0000-0002-3874-0894/activities"
@@ -89,8 +86,8 @@ def memberAPI():
                      sandbox=True)
 
 
-@httpretty.activate
-def test_search_member(memberAPI, search_result, token_response):
+@httpretty.activate_(memberAPI, search_result, token_response)
+def test_search_member():
     """Test search_member."""
     SEARCH_URI = "https://api.sandbox.orcid.org/v1.2/search" + \
         "/orcid-bio/?defType=lucene&q=(\w+)"
@@ -113,9 +110,8 @@ def test_search_member(memberAPI, search_result, token_response):
                    'path'] == u'0000-0002-3874-0894'
 
 
-@httpretty.activate
-def test_read_record_member(memberAPI, token_response, body_all,
-                            body_single_work):
+@httpretty.activate_(memberAPI, token_response, body_all, body_single_work)
+def test_read_record_member():
     """Test reading records."""
     TOKEN_URI = "https://api.sandbox.orcid.org/oauth/token"
     httpretty.register_uri(httpretty.POST, TOKEN_URI,
@@ -154,8 +150,8 @@ def test_read_record_member(memberAPI, token_response, body_all,
     assert work['type'] == u'BOOK'
 
 
-@httpretty.activate
-def test_work_simple(memberAPI, token_response, body_none, body_all):
+@httpretty.activate_(memberAPI, token_response, body_none, body_all)
+def test_work_simple():
     """Test adding, updating and removing an example of a simple work."""
 
     TOKEN_URI = "https://api.sandbox.orcid.org/oauth/token"
@@ -222,8 +218,8 @@ def test_work_simple(memberAPI, token_response, body_none, body_all):
     assert len(added_works) == 0
 
 
-@httpretty.activate
-def test_get_orcid(memberAPI, authorization_code, token_json):
+@httpretty.activate_(memberAPI, authorization_code, token_json)
+def test_get_orcid():
     """Test fetching user id from authentication."""
     authresp = '{"success": true, "url": "https://sandbox.orcid.org/my-orcid"}'
     httpretty.register_uri(httpretty.POST, memberAPI._auth_url,
@@ -242,8 +238,8 @@ def test_get_orcid(memberAPI, authorization_code, token_json):
     assert orcid == "0000-0002-3874-0894"
 
 
-@httpretty.activate
-def test_get_token(memberAPI, authorization_code, token_json):
+@httpretty.activate_(memberAPI, authorization_code, token_json)
+def test_get_token():
     """Test getting token."""
     authresp = '{"success": true, "url": "https://sandbox.orcid.org/my-orcid"}'
     httpretty.register_uri(httpretty.POST, memberAPI._auth_url,

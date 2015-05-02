@@ -1,10 +1,14 @@
 """Helper functions and response bodies for tests."""
 
+import functools
 import pytest
 
 
 def import_httpretty():
-    """Import HTTPretty and monkey patch Python 3.4 issue.
+    """Import HTTPretty and monkey patch it.
+
+    Monkey patch Python 3.4 issue.
+    Monkey patch pytest fixtures handling.
 
     See https://github.com/gabrielfalcao/HTTPretty/pull/193 and
     as well as https://github.com/gabrielfalcao/HTTPretty/issues/221.
@@ -14,7 +18,6 @@ def import_httpretty():
     if not PY34:
         import httpretty
     else:
-        import functools
         import socket
         old_SocketType = socket.SocketType
 
@@ -32,7 +35,24 @@ def import_httpretty():
         core.httpretty.disable = sockettype_patch(
             httpretty.httpretty.disable
         )
+
+    def activate_(*arguments):
+        def real_decorator(function):
+            def wrapper(*args, **kwargs):
+                def test_with_fixtures(*args):
+                    return functools.partial(function, args)
+
+                return httpretty.activate(test_with_fixtures)
+            return wrapper
+        return real_decorator
+
+    # Monkey patched activate method.
+    httpretty.activate_ = activate_
+
     return httpretty
+
+
+httpretty = import_httpretty()
 
 
 @pytest.fixture
