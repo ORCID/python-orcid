@@ -1,6 +1,7 @@
 """Tests for ORCID library."""
 
 import json
+import lxml
 import pytest
 import re
 import sys
@@ -186,7 +187,10 @@ def test_work_simple(memberAPI, token_response, body_none, body_all):
         'type': 'journal-article'
     }
     memberAPI.add_record('0000-0002-3874-0894', 'token', 'work', work)
-
+    assert httpretty.last_request().headers.get('authorization') == \
+        'Bearer token'
+    assert httpretty.last_request().headers.get('host') == \
+        'api.sandbox.orcid.org'
     httpretty.register_uri(httpretty.GET, all_works_url,
                            body=str(body_all),
                            content_type="application/orcid+json")
