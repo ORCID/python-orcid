@@ -1,10 +1,8 @@
 """Tests for ORCID library."""
 
 import json
-import lxml
 import pytest
 import re
-import sys
 
 from orcid import MemberAPI, PublicAPI
 from .helpers import httpretty

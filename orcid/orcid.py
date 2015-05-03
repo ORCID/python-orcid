@@ -2,6 +2,7 @@
 
 from jinja2 import FileSystemLoader, Environment
 
+import codecs
 import json
 import os
 import requests
@@ -29,6 +30,8 @@ class PublicAPI(object):
             self._endpoint_public = "https://pub.sandbox.orcid.org"
         else:
             self._endpoint_public = "https://pub.orcid.org"
+
+        self.reader = codecs.getreader("utf-8")
 
     def read_record_public(self, orcid_id, request_type, put_code=None):
         """Get the public info about the researcher.
@@ -92,7 +95,7 @@ class PublicAPI(object):
                                 argument is redundant.""")
         response = function(orcid_id, request_type, put_code)
         response.raise_for_status()
-        return json.loads(response.content.decode())
+        return response.json()
 
     def _get_public_info(self, orcid_id, request_type, put_code):
         request_url = '%s/%s/%s' % (self._endpoint_public + VERSION,
@@ -113,7 +116,7 @@ class PublicAPI(object):
             url += "&rows=%s" % rows
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        return json.loads(response.content.decode())
+        return response.json()
 
 
 class MemberAPI(PublicAPI):
@@ -374,7 +377,7 @@ class MemberAPI(PublicAPI):
 
         response = requests.post(url, data=payload, headers=headers)
         response.raise_for_status()
-        return json.loads(response.content.decode())['access_token']
+        return response.json()['access_token']
 
     def _get_member_info(self, orcid_id, request_type, put_code):
         access_token = self. \
