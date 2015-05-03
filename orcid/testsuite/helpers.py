@@ -17,6 +17,7 @@ def import_httpretty():
     PY34 = sys.version_info[0] == 3 and sys.version_info[1] == 4
     if not PY34:
         import httpretty
+        httpretty.disable_ = httpretty.disable
     else:
         import socket
         old_SocketType = socket.SocketType
@@ -32,22 +33,9 @@ def import_httpretty():
                 socket.__dict__['SocketType'] = old_SocketType
             return inner
 
-        core.httpretty.disable = sockettype_patch(
+        httpretty.disable_ = sockettype_patch(
             httpretty.httpretty.disable
         )
-
-    def activate_(*arguments):
-        def real_decorator(function):
-            def wrapper(*args, **kwargs):
-                def test_with_fixtures(*args):
-                    return functools.partial(function, args)
-
-                return httpretty.activate(test_with_fixtures)
-            return wrapper
-        return real_decorator
-
-    # Monkey patched activate method.
-    httpretty.activate_ = activate_
 
     return httpretty
 

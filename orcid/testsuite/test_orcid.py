@@ -20,12 +20,11 @@ def publicAPI():
     return PublicAPI(sandbox=True)
 
 
-@httpretty.activate_(publicAPI, search_result)
-def test_search_public():
+def test_search_public(publicAPI, search_result):
     """Test search_public."""
     search_url = "https\:\/\/pub\.sandbox\.orcid\.org\/v1\.2\/search\/" + \
         "orcid-bio\/\?defType\=lucene&q\=.+"
-
+    httpretty.enable()
     httpretty.register_uri(httpretty.GET,
                            re.compile(search_url),
                            body=search_result,
@@ -38,13 +37,13 @@ def test_search_public():
 
     results = publicAPI.search_public('family-name:Sanchez', start=2, rows=6)
     # Just check if the request suceeded
-
+    httpretty.disable_()
     assert results['error-desc'] is None
 
 
-@httpretty.activate_(publicAPI, body_all, body_single_work)
-def test_read_record_public():
+def test_read_record_public(publicAPI, body_all, body_single_work):
     """Test reading records."""
+    httpretty.enable()
     all_works_url = "https://pub.sandbox.orcid.org/v2.0_rc1" + \
         "/0000-0002-3874-0894/activities"
     single_works_url = "https://pub.sandbox.orcid.org/v2.0_rc1" + \
@@ -77,6 +76,7 @@ def test_read_record_public():
     with pytest.raises(ValueError) as excinfo:
         publicAPI.read_record_public('0000-0002-3874-0894', 'work')
     assert "please specify the 'put_code' argument" in str(excinfo.value)
+    httpretty.disable_()
 
 
 @pytest.fixture
@@ -86,9 +86,9 @@ def memberAPI():
                      sandbox=True)
 
 
-@httpretty.activate_(memberAPI, search_result, token_response)
-def test_search_member():
+def test_search_member(memberAPI, search_result, token_response):
     """Test search_member."""
+    httpretty.enable()
     SEARCH_URI = "https://api.sandbox.orcid.org/v1.2/search" + \
         "/orcid-bio/?defType=lucene&q=(\w+)"
 
@@ -108,11 +108,13 @@ def test_search_member():
     assert results['orcid-search-results']['orcid-search-result'][0][
                    'orcid-profile']['orcid-identifier'][
                    'path'] == u'0000-0002-3874-0894'
+    httpretty.disable_()
 
 
-@httpretty.activate_(memberAPI, token_response, body_all, body_single_work)
-def test_read_record_member():
+def test_read_record_member(memberAPI, token_response, body_all,
+                            body_single_work):
     """Test reading records."""
+    httpretty.enable()
     TOKEN_URI = "https://api.sandbox.orcid.org/oauth/token"
     httpretty.register_uri(httpretty.POST, TOKEN_URI,
                            body=token_response,
@@ -148,12 +150,12 @@ def test_read_record_member():
     work = memberAPI.read_record_member('0000-0002-3874-0894', 'work',
                                         put_code)
     assert work['type'] == u'BOOK'
+    httpretty.disable_()
 
 
-@httpretty.activate_(memberAPI, token_response, body_none, body_all)
-def test_work_simple():
+def test_work_simple(memberAPI, token_response, body_none, body_all):
     """Test adding, updating and removing an example of a simple work."""
-
+    httpretty.enable()
     TOKEN_URI = "https://api.sandbox.orcid.org/oauth/token"
     httpretty.register_uri(httpretty.POST, TOKEN_URI,
                            body=token_response,
@@ -216,11 +218,12 @@ def test_work_simple():
                            content_type="application/orcid+json")
     added_works = get_added_works()
     assert len(added_works) == 0
+    httpretty.disable_()
 
 
-@httpretty.activate_(memberAPI, authorization_code, token_json)
-def test_get_orcid():
+def test_get_orcid(memberAPI, authorization_code, token_json):
     """Test fetching user id from authentication."""
+    httpretty.enable()
     authresp = '{"success": true, "url": "https://sandbox.orcid.org/my-orcid"}'
     httpretty.register_uri(httpretty.POST, memberAPI._auth_url,
                            body=authresp)
@@ -236,11 +239,12 @@ def test_get_orcid():
                                      "password",
                                      "redirect")
     assert orcid == "0000-0002-3874-0894"
+    httpretty.disable_()
 
 
-@httpretty.activate_(memberAPI, authorization_code, token_json)
-def test_get_token():
+def test_get_token(memberAPI, authorization_code, token_json):
     """Test getting token."""
+    httpretty.enable()
     authresp = '{"success": true, "url": "https://sandbox.orcid.org/my-orcid"}'
     httpretty.register_uri(httpretty.POST, memberAPI._auth_url,
                            body=authresp)
@@ -258,3 +262,4 @@ def test_get_token():
                                 "redirect")
     # The token doesn't change on the sandbox
     assert token == "token"
+    httpretty.disable_()
