@@ -45,5 +45,5 @@ setup(author='Mateusz Susik',
       packages=['orcid'],
       tests_require=['pytest', 'coverage', 'httpretty', 'decorator'],
       url='https://github.com/MSusik/python-orcid',
-      version='0.3.1'
+      version='0.4.0'
       )

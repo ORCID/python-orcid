@@ -10,7 +10,7 @@ import requests
 SEARCH_VERSION = "/v1.2"
 VERSION = "/v2.0_rc1"
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 
 class PublicAPI(object):
