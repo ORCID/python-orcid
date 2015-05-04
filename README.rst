@@ -1,17 +1,17 @@
 python-orcid
 ============
 
-.. image:: https://travis-ci.org/MSusik/python-orcid.svg?branch=master
+.. image:: https://img.shields.io/travis/MSusik/python-orcid.svg?style=flat-square
   :target: https://travis-ci.org/MSusik/python-orcid
-.. image:: https://coveralls.io/repos/MSusik/python-orcid/badge.svg?branch=master
+.. image:: https://img.shields.io/coveralls/MSusik/python-orcid.svg?style=flat-square
   :target: https://coveralls.io/r/MSusik/python-orcid?branch=master
-.. image:: https://pypip.in/download/orcid/badge.svg
+.. image:: https://img.shields.io/pypi/dm/orcid.svg?style=flat-square
   :target: https://pypi.python.org/pypi/orcid/
-.. image:: https://pypip.in/license/orcid/badge.svg
+.. image:: https://img.shields.io/pypi/l/orcid.svg?style=flat-square
   :target: https://pypi.python.org/pypi/orcid/
-.. image:: https://pypip.in/py_versions/orcid/badge.svg
+.. image:: https://img.shields.io/badge/python-2.6%202.7%203.3%203.4-blue.svg?style=flat-square
   :target: https://pypi.python.org/pypi/orcid/
-.. image:: https://pypip.in/status/orcid/badge.svg
+.. image:: https://img.shields.io/badge/status-alpha-red.svg?style=flat-square
   :target: https://pypi.python.org/pypi/orcid/
 
 Authors
