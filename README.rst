@@ -19,13 +19,21 @@ Authors
 
 Mateusz Susik <mateuszsusik@gmail.com>
 
-
 Installation
 ------------
 
 .. code-block:: python
 
     pip install orcid
+
+
+Running tests
+-------------
+
+.. code-block:: python
+
+    python setup.py test
+
 
 Notes
 -----
