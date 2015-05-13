@@ -3,14 +3,14 @@
 from jinja2 import FileSystemLoader, Environment
 
 import codecs
-import json
+import simplejson as json
 import os
 import requests
 
 SEARCH_VERSION = "/v1.2"
 VERSION = "/v2.0_rc1"
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 
 class PublicAPI(object):

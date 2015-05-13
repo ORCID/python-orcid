@@ -1,6 +1,6 @@
 """Tests for ORCID library."""
 
-import json
+import simplejson as json
 import pytest
 import re
 
