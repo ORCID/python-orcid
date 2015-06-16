@@ -165,9 +165,14 @@ class MemberAPI(PublicAPI):
             provided.
         :param xml: string
             The record in ORCID XML format. Optional.
+
+        Returns
+        -------
+        :returns: string
+            Put-code of the new work.
         """
-        self._update_activities(orcid_id, token, requests.post, request_type,
-                                data, xml)
+        return self._update_activities(orcid_id, token, requests.post,
+                                       request_type, data, xml)
 
     def get_user_orcid(self, user_id, password, redirect_uri):
         """Get the user orcid from authentication process.
@@ -415,3 +420,6 @@ class MemberAPI(PublicAPI):
         else:
             response = method(url, xml, headers=headers)
         response.raise_for_status()
+        if 'location' in response.headers:
+            # Return the new put-code
+            return response.headers['location'].split('/')[-1]
