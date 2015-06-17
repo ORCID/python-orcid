@@ -69,7 +69,7 @@ class PublicAPI(object):
             Index of the first record requested. Use for pagination.
         :param rows: string
             Number of records requested. Use for pagination.
-        :search_field: string
+        :param search_field: string
             Scope used for seaching. The default one allows to search
             everywhere.
 
@@ -85,6 +85,46 @@ class PublicAPI(object):
 
         return self._search(query, method, start, rows, search_field,
                             headers, self._endpoint_public)
+
+    def search_public_generator(self, query, method="lucene",
+                                search_field="orcid-bio", pagination=10):
+        """Search the ORCID database with a generator.
+
+        The generator will yield every result.
+
+        Parameters
+        ----------
+        :param query: string
+            Query in line with the chosen method.
+        :param method: string
+            One of 'lucene', 'edismax', 'dismax'
+        :param search_field: string
+            Scope used for seaching. The default one allows to search
+            everywhere.
+        :param pagination: integer
+            How many papers should be fetched with ine request.
+
+        Yields
+        -------
+        :yields: dict
+            Single profile from the search results.
+        """
+        headers = {'Accept': 'application/orcid+json'}
+
+        index = 0
+
+        while True:
+            paginated_result = self._search(query, method, index, pagination,
+                                            search_field, headers,
+                                            self._endpoint_public)
+            if not paginated_result['orcid-search-results'][
+                                    'orcid-search-result']:
+                return
+
+            for result in paginated_result['orcid-search-results'][
+                                           'orcid-search-result']:
+                yield result
+            index += pagination
 
     def _get_info(self, orcid_id, function, request_type, put_code=None):
         if request_type != "activities" and not put_code:
@@ -297,6 +337,45 @@ class MemberAPI(PublicAPI):
 
         return self._search(query, method, start, rows, search_field, headers,
                             self._endpoint_member)
+
+    def search_member_generator(self, query, method="lucene",
+                                search_field="orcid-bio", pagination=10):
+        """Search the ORCID database with a generator.
+
+        The generator will yield every result.
+
+        Parameters
+        ----------
+        :param query: string
+            Query in line with the chosen method.
+        :param method: string
+            One of 'lucene', 'edismax', 'dismax'
+        :param search_field: string
+            Scope used for seaching. The default one allows to search
+            everywhere.
+        :param pagination: integer
+            How many papers should be fetched with ine request.
+        """
+        access_token = self. \
+            _get_access_token_from_orcid('/read-public')
+
+        headers = {'Accept': 'application/orcid+json',
+                   'Authorization': 'Bearer %s' % access_token}
+
+        index = 0
+
+        while True:
+            paginated_result = self._search(query, method, index, pagination,
+                                            search_field, headers,
+                                            self._endpoint_member)
+            if not paginated_result['orcid-search-results'][
+                                    'orcid-search-result']:
+                return
+
+            for result in paginated_result['orcid-search-results'][
+                                           'orcid-search-result']:
+                yield result
+            index += pagination
 
     def update_record(self, orcid_id, token, request_type, put_code, data=None,
                       xml=None):
