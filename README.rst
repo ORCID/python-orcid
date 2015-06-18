@@ -165,12 +165,13 @@ Using the member API, one can add/update/remove records from the ORCID profile.
 
 .. code-block:: python
 
-    api.add_record(author-orcid, token, 'work',
-                   {'title': 'Title', 'type': 'artistic-performance'})
+    put_code = api.add_record(author-orcid, token, 'work',
+                              {'title': {'title': Title'},
+                               'type': 'ARTISTIC_PERFORMANCE'})
 
     # Change the type to 'other'
     api.update_record(author-orcid, token, 'work', put-code,
-                      {'type': 'other'})
+                      {'type': 'OTHER'})
     api.remove_record(author-orcid, token, 'work', put-code)
 
 
@@ -186,16 +187,7 @@ has to be specified. The available types are:
 * peer-review
 * work
 
-The last argument is the record itself. You can pass a python dictionary
-(see the explanation below) or an xml.
-
-.. code-block:: python
-
-    api.add_record('author-orcid', 'token', 'work',
-                   xml='<work>xml content</work>')
-
-
-If xml is not provided, it will be rendered by the library. Here are some
+The last argument is the record itself. Here are some
 examplary dictionaries that can be passed as an argument:
 
 work
@@ -209,7 +201,7 @@ A minimal example, only the mandatory fields are filled.
 
     {
         'title': {'title': 'API Test Title'},
-        'type': 'journal-article'
+        'type': 'JOURNAL_ARTICLE'
     }
 
 An example where all the fields are filled.
@@ -219,14 +211,14 @@ An example where all the fields are filled.
     {
         'title': {'title': 'API Test Title',
                   'subtitle': 'My Subtitle',
-                  'translated_title':
-                        {'language_code': 'pl',
+                  'translated-title':
+                        {'language-code': 'pl',
                          # Remember to use unicode strings for non ASCII
                          # charactes!
-                         'translated_title': u'API Tytuł testowy'}
+                         'value': u'API Tytuł testowy'}
                  },
-        'journal_title': 'Journal Title',
-        'short_description': 'My abstract',
+        'journal-title': 'Journal Title',
+        'short-description': 'My abstract',
         'citation': {
             'citation': '''@article {ORCIDtest2014,
                            author = "Lastname, Firstname",
@@ -239,56 +231,56 @@ An example where all the fields are filled.
                            doi = "doi:10.1087/20120404"
                          }''',
             # Available types:
-            # 'formatted-unspecified'
-            # 'bibtex'
-            # 'formatted-apa'
-            # 'formatted-harvard'
-            # 'formatted-ieee'
-            # 'formatted-mla'
-            # 'formatted-vancouver'
-            # 'formatted-chicago'
-            'citation_type': 'bibtex'
+            # 'FORMATTED-UNSPECIFIED'
+            # 'BIBTEX'
+            # 'FORMATTED_APA'
+            # 'FORMATTED_HARVARD'
+            # 'FORMATTED_IEEE'
+            # 'FORMATTED_MLA'
+            # 'FORMATTED_VANCOUVER'
+            # 'FORMATTED_CHICAGO'
+            'citation-type': 'BIBTEX'
         },
         # See http://members.orcid.org/api/supported-work-types
-        'type': 'journal-article',
-        'publication_date': {'year': '2010',
-                             'month': '11',
-                             'day': '10'
+        'type': 'JOURNAL_ARTICLE',
+        'publication_date': {'year': 2010,
+                             'month': 11,
+                             'day': 10
         },
         # See http://members.orcid.org/api/supported-work-identifiers
-        'work_external_identifiers': [{
-            'type': 'source-work-id',
-            'id': '1234'
-        }],
+        'external-identifiers': { 'work-external-identifier':[{
+            'external-identifier-type': 'SOURCE_WORK_ID',
+            'external-identifier-id': '1234'
+        }]},
         'url': 'https://github.com/MSusik/python-orcid',
-        'contributors': [{
-            'name': 'LastName, FirstName',
-            'orcid': '0000-0001-5109-3700',
-            'email': 'somebody@mailinator.com',
-            'attributes': {
+        'contributors': {'contributor': [{
+            'credit-name': 'LastName, FirstName',
+            'contributor-orcid': '0000-0001-5109-3700',
+            'contributor-email': 'somebody@mailinator.com',
+            'contributor-attributes': {
                 # Supported roles:
-                # 'author'
-                # 'assignee'
-                # 'editor'
-                # 'chair-or-translator'
-                # 'co-investigator'
-                # 'co-inventor'
-                # 'graduate-student'
-                # 'other-inventor'
-                # 'principal-investigator'
-                # 'postdoctoral-researcher'
-                # 'support-staff'
-                # 'lead'
-                # 'co lead'
-                # 'supported by'
-                'role': 'author',
-                # One of 'additional', 'first'
-                'sequence': 'additional'
+                # 'AUTHOR'
+                # 'ASSIGNEE'
+                # 'EDITOR'
+                # 'CHAIR-OR-TRANSLATOR'
+                # 'CO-INVESTIGATOR'
+                # 'CO-INVENTOR'
+                # 'GRADUATE-STUDENT'
+                # 'OTHER-INVENTOR'
+                # 'PRINCIPAL-INVESTIGATOR'
+                # 'POSTDOCTORAL-RESEARCHER'
+                # 'SUPPORT-STAFF'
+                # 'LEAD'
+                # 'CO LEAD'
+                # 'SUPPORTED BY'
+                'role': 'AUTHOR',
+                # One of 'ADDITIONAL', 'FIRST'
+                'contributor-sequence': 'ADDITIONAL'
             }
-        }],
+        }]},
         # ISO-629-1: http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
-        'language_code': 'en',
-        'country': {'code': 'US'}
+        'language-code': 'en',
+        'country': {'value': 'US', 'visibility': 'PUBLIC'}
     }
 
 
@@ -316,15 +308,15 @@ An example with all the fields used.
 .. code-block:: python
 
     {
-        'department_name': 'Department',
-        'role': 'Researcher (Academic)',
-        'start_date': {'year': '2012',
-                       'month': '04',
-                       'day': '10'
+        'department-name': 'Department',
+        'role-title': 'Researcher (Academic)',
+        'start-date': {'year': 2012,
+                       'month': 04,
+                       'day': 10
         },
-        'end_date': {'year': '2013',
-                     'month': '04',
-                     'day': '10'
+        'end-date': {'year': 2013,
+                     'month': 04,
+                     'day': 10
         },
         'organization': {
             'address': {
@@ -333,7 +325,7 @@ An example with all the fields used.
                 'country': 'US'
             },
             'disambiguated-organization': {
-                'identifier': 'XXXXXX',
+                'disambiguated-organization-identifier': 'XXXXXX',
                 # Only RINGGOLD is available so far.
                 'disambiguation-source': 'RINGGOLD'
             },
@@ -353,12 +345,8 @@ A minimal example using only the required fields.
 .. code-block:: python
 
     {
-        # Supported types:
-        # 'award',
-        # 'contract',
-        # 'grant',
-        # 'salary-award'
-        'type': 'award',
+        # One of 'AWARD', 'CONTRACT', 'GRANT', 'SALARY_AWARD'
+        'type': 'AWARD',
         'title': {
             'title': 'Title of the Funding',
         },
@@ -376,43 +364,44 @@ An example with all the fields used.
 .. code-block:: python
 
     {
-        'type': 'award',
+        'type': 'AWARD',
         'title': {
             'title': 'Title of the Funding',
-            'translated_title': {
-                'title': u'Tytuł Finansowania',
-                'code': 'pl'
+            'translated-title': {
+                'value': u'Tytuł Finansowania',
+                'language-code': 'pl'
             }
         },
-        'short_description': 'Description of the funding',
-        'amount': {'currency_code': 'USD',
-                   'amount': 1000},
+        'short-description': 'Description of the funding',
+        'amount': {'currency-code': 'USD',
+                   'value': 1000},
         'url': 'www.orcid.org',
-        'start_date': {'year': '2013',
-                       'month': '01',
-                       'day': '10'
+        'start-date': {'year': 2013,
+                       'month': 01,
+                       'day': 10
                        },
-        'end_date': {'year': '2014',
-                     'month': '01',
-                     'day': '10'
+        'end-date': {'year': 2014,
+                     'month': 01,
+                     'day': 10
                      },
-        'external_identifiers': [{
-                                  # Only allowed value is 'grant_number'
-                                  'type': 'grant_number',
-                                  'value': '1234',
-                                  'url': 'www.funding.com/1234'
-                                }],
-        'contributors': [{
-            'orcid': '0000-0003-4494-0734',
-            'credit_name': {
-                'name': 'Smith, John.',
+        'external-identifiers': {'externalIdentifier': [{
+           # Only allowed value is 'GRANT_NUMBER'
+           'external-identifier-type': 'GRANT_NUMBER',
+           'external-identifier-value': '1234',
+           'external-identifier-url': 'www.funding.com/1234'
+         }]},
+        'contributors': {'contributor': [{
+            'contributor-orcid': '0000-0003-4494-0734',
+            'credit-name': {
+                'value': 'Smith, John.',
+                'visibility': 'PUBLIC'
             },
-            'email': 'john@mailinator.com',
-             'attributes': {
-                 # one of 'lead', 'co lead', 'supported by', 'other'
-                 'role': 'lead',
-             }
-        }],
+            'contributor-email': 'john@mailinator.com',
+            'contributor-attributes': {
+                # One of 'LEAD', 'CO_LEAD', 'SUPPORTED_BY', 'OTHER_CONTRIBUTION'
+                'contributor-role': 'LEAD',
+            }
+        }]},
         'organization': {
             'address': {
                 'city': 'London',
@@ -420,7 +409,7 @@ An example with all the fields used.
                 'country': 'GB'
             },
             'disambiguated-organization': {
-                'identifier': 'XXXXXX',
+                'disambiguated-organization-identifier': 'XXXXXX',
                 # Only FUNDREF is available so far.
                 'disambiguation-source': 'FUNDREF'
             },

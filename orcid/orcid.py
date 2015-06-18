@@ -188,7 +188,7 @@ class MemberAPI(PublicAPI):
             self._token_url = "https://api.orcid.org/oauth/token"
         PublicAPI.__init__(self, sandbox)
 
-    def add_record(self, orcid_id, token, request_type, data=None, xml=None):
+    def add_record(self, orcid_id, token, request_type, data):
         """Add a record to a profile.
 
         Parameters
@@ -203,8 +203,6 @@ class MemberAPI(PublicAPI):
         :param data: dict
             The record in Python-friendly format. Required if xml is not
             provided.
-        :param xml: string
-            The record in ORCID XML format. Optional.
 
         Returns
         -------
@@ -212,7 +210,7 @@ class MemberAPI(PublicAPI):
             Put-code of the new work.
         """
         return self._update_activities(orcid_id, token, requests.post,
-                                       request_type, data, xml)
+                                       request_type, data)
 
     def get_user_orcid(self, user_id, password, redirect_uri):
         """Get the user orcid from authentication process.
@@ -296,12 +294,12 @@ class MemberAPI(PublicAPI):
         :param request_type: string
             One of 'activities', 'education', 'employment', 'funding',
             'peer-review', 'work'.
-        :param put_code: string
+         :param put_code: string
             The id of the record. Can be retrieved using read_record_* method.
             In the result of it, it will be called 'put-code'.
         """
         self._update_activities(orcid_id, token, requests.delete, request_type,
-                                None, None, put_code)
+                                put_code=put_code)
 
     def search_member(self, query, method="lucene", start=None, rows=None,
                       search_field="orcid-bio"):
@@ -377,8 +375,7 @@ class MemberAPI(PublicAPI):
                 yield result
             index += pagination
 
-    def update_record(self, orcid_id, token, request_type, put_code, data=None,
-                      xml=None):
+    def update_record(self, orcid_id, token, request_type, data, put_code):
         """Add a record to a profile.
 
         Parameters
@@ -390,17 +387,15 @@ class MemberAPI(PublicAPI):
         :param request_type: string
             One of 'activities', 'education', 'employment', 'funding',
             'peer-review', 'work'.
-        :param put_code: string
-            The id of the record. Can be retrieved using read_record_* method.
-            In the result of it, it will be called 'put-code'.
         :param data: dict
             The record in Python-friendly format. Required if xml is not
             provided.
-        :param xml: string
-            The record in ORCID XML format. Optional.
+         :param put_code: string
+            The id of the record. Can be retrieved using read_record_* method.
+            In the result of it, it will be called 'put-code'.
         """
         self._update_activities(orcid_id, token, requests.put, request_type,
-                                data, xml, put_code)
+                                data, put_code)
 
     def _authenticate(self, user_id, password, redirect_uri, session, scope):
         response = session.post(self._auth_url,
@@ -474,31 +469,28 @@ class MemberAPI(PublicAPI):
                    'Authorization': 'Bearer %s' % access_token}
         return requests.get(request_url, headers=headers)
 
-    def _update_activities(self, orcid_id, token, method, request_type, data,
-                           xml, put_code=None):
+    def _update_activities(self, orcid_id, token, method, request_type,
+                           data=None, put_code=None):
         url = "%s/%s/%s" % (self._endpoint_member + VERSION, orcid_id,
                             request_type)
+
         if put_code:
             url += ('/%s' % put_code)
-            if not xml and method != requests.delete:
-                data['put_code'] = put_code
+            if data:
+                data['put-code'] = put_code
 
-        if not xml and method != requests.delete:
-            current_path = os.path.dirname(os.path.abspath(__file__))
-            template_dir = '%s/templates/' % current_path
-            environment = Environment(loader=FileSystemLoader(template_dir))
-            template = environment.get_template("%s.xml" % request_type)
-            xml = template.render({'record': data}).encode('utf-8')
-
-        headers = {'Accept': 'application/vnd.orcid+xml',
-                   'Content-Type': 'application/vnd.orcid+xml',
+        headers = {'Accept': 'application/orcid+json',
+                   'Content-Type': 'application/orcid+json',
                    'Authorization': 'Bearer ' + token}
 
         if method == requests.delete:
             response = method(url, headers=headers)
         else:
+            xml = json.dumps(data)
             response = method(url, xml, headers=headers)
+
         response.raise_for_status()
+
         if 'location' in response.headers:
             # Return the new put-code
             return response.headers['location'].split('/')[-1]

@@ -182,7 +182,7 @@ def test_work_simple(memberAPI, token_response, body_none, body_all):
     # Add
     work = {
         'title': {'title': title},
-        'type': 'journal-article'
+        'type': 'JOURNAL_ARTICLE'
     }
     memberAPI.add_record('0000-0002-3874-0894', 'token', 'work', work)
     assert httpretty.last_request().headers.get('authorization') == \
@@ -199,8 +199,8 @@ def test_work_simple(memberAPI, token_response, body_none, body_all):
     put_code = added_works[0]['work-summary'][0]['put-code']
 
     # Update
-    memberAPI.update_record('0000-0002-3874-0894', 'token', 'work', put_code,
-                            {'type': 'other'})
+    memberAPI.update_record('0000-0002-3874-0894', 'token', 'work',
+                            {'type': 'OTHER'}, put_code)
 
     body_all_json = json.loads(body_all)
     body_all_json['works']['group'][0]['work-summary'][0]['type'] = 'OTHER'
