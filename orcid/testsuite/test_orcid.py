@@ -40,6 +40,29 @@ def test_search_public(publicAPI, search_result):
     assert results['error-desc'] is None
 
 
+def test_search_public_generator(publicAPI, search_result):
+    """Test search public with a generator."""
+    search_url = "https\:\/\/pub\.sandbox\.orcid\.org\/v1\.2\/search\/" + \
+        "orcid-bio\/\?defType\=lucene&q\=.+"
+    httpretty.enable()
+    httpretty.register_uri(httpretty.GET,
+                           re.compile(search_url),
+                           body=search_result,
+                           content_type='application/orcid+json',
+                           match_querystring=True)
+    results = publicAPI.search_public('text:%s' % WORK_NAME)
+    assert results['orcid-search-results']['orcid-search-result'][0][
+                   'orcid-profile']['orcid-identifier'][
+                   'path'] == u'0000-0002-3874-0894'
+
+    generator = publicAPI.search_public_generator('family-name:Sanchez')
+    result = generator.next()
+    result = generator.next()
+    # Just check if the request suceeded
+    httpretty.disable_()
+    assert result['relevancy-score']['value'] > 0.9
+
+
 def test_read_record_public(publicAPI, body_all, body_single_work):
     """Test reading records."""
     httpretty.enable()
@@ -106,6 +129,32 @@ def test_search_member(memberAPI, search_result, token_response):
     results = memberAPI.search_member('text:%s' % WORK_NAME)
     assert results['orcid-search-results']['orcid-search-result'][0][
                    'orcid-profile']['orcid-identifier'][
+                   'path'] == u'0000-0002-3874-0894'
+    httpretty.disable_()
+
+
+def test_search_public_generator(memberAPI, search_result, token_response):
+    """Test search_member with generator."""
+    httpretty.enable()
+    SEARCH_URI = "https://api.sandbox.orcid.org/v1.2/search" + \
+        "/orcid-bio/?defType=lucene&q=(\w+)"
+
+    TOKEN_URI = "https://api.sandbox.orcid.org/oauth/token"
+
+    httpretty.register_uri(httpretty.POST, TOKEN_URI,
+                           body=token_response,
+                           content_type="application/json")
+
+    httpretty.register_uri(httpretty.GET, SEARCH_URI,
+                           body=search_result,
+                           content_type='application/orcid+json',
+                           adding_headers={
+                               "Authorization": "Bearer token"
+                           })
+    generator = memberAPI.search_member_generator('text:%s' % WORK_NAME)
+    results = generator.next()
+    results = generator.next()
+    assert results['orcid-profile']['orcid-identifier'][
                    'path'] == u'0000-0002-3874-0894'
     httpretty.disable_()
 
