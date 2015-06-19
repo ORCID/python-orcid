@@ -1,10 +1,10 @@
 python-orcid
 ============
 
-.. image:: https://img.shields.io/travis/MSusik/python-orcid.svg?style=flat-square
-  :target: https://travis-ci.org/MSusik/python-orcid
-.. image:: https://img.shields.io/coveralls/MSusik/python-orcid.svg?style=flat-square
-  :target: https://coveralls.io/r/MSusik/python-orcid?branch=master
+.. image:: https://img.shields.io/travis/ORCID/python-orcid.svg?style=flat-square
+  :target: https://travis-ci.org/ORCID/python-orcid
+.. image:: https://img.shields.io/coveralls/ORCID/python-orcid.svg?style=flat-square
+  :target: https://coveralls.io/r/ORCID/python-orcid?branch=master
 .. image:: https://img.shields.io/pypi/dm/orcid.svg?style=flat-square
   :target: https://pypi.python.org/pypi/orcid/
 .. image:: https://img.shields.io/pypi/l/orcid.svg?style=flat-square
