@@ -145,7 +145,7 @@ user:
 
 .. code-block:: python
 
-    orcid = api.get_orcid(author_id, author_password, institution_redirect_uri)
+    orcid = api.get_user_orcid(user_id, password, redirect_uri)
 
 Token
 -----
@@ -417,7 +417,7 @@ An example with all the fields used.
         }
     }
 
-peer-rewiev
+peer-review
 ~~~~~~~~~~~
 
 TBA
