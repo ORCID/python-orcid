@@ -35,15 +35,14 @@ setup(author='Mateusz Susik',
         'Topic :: Utilities'
       ],
       cmdclass={'test': PyTest},
-      description='A python wrapper over ORCID API',
+      description='A python wrapper over the ORCID API',
       install_requires=['requests', 'simplejson'],
       keywords=['orcid', 'api', 'wrapper'],
       license='BSD',
       long_description=open('README.rst', 'r').read(),
       name='orcid',
-      package_data={'orcid': ['templates/*.xml']},
       packages=['orcid'],
       tests_require=['pytest', 'coverage', 'httpretty'],
-      url='https://github.com/MSusik/python-orcid',
+      url='https://github.com/ORCID/python-orcid',
       version='0.5.1'
       )
