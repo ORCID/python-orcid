@@ -1,16 +1,12 @@
 """Implementation of python-orcid library."""
 
-from jinja2 import FileSystemLoader, Environment
-
-import codecs
 import simplejson as json
-import os
 import requests
 
 SEARCH_VERSION = "/v1.2"
 VERSION = "/v2.0_rc1"
 
-__version__ = "0.4.1"
+__version__ = "0.5.1"
 
 
 class PublicAPI(object):
@@ -30,8 +26,6 @@ class PublicAPI(object):
             self._endpoint_public = "https://pub.sandbox.orcid.org"
         else:
             self._endpoint_public = "https://pub.orcid.org"
-
-        self.reader = codecs.getreader("utf-8")
 
     def read_record_public(self, orcid_id, request_type, put_code=None):
         """Get the public info about the researcher.

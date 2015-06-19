@@ -56,8 +56,8 @@ def test_search_public_generator(publicAPI, search_result):
                    'path'] == u'0000-0002-3874-0894'
 
     generator = publicAPI.search_public_generator('family-name:Sanchez')
-    result = generator.next()
-    result = generator.next()
+    result = next(generator)
+    result = next(generator)
     # Just check if the request suceeded
     httpretty.disable_()
     assert result['relevancy-score']['value'] > 0.9
@@ -133,7 +133,7 @@ def test_search_member(memberAPI, search_result, token_response):
     httpretty.disable_()
 
 
-def test_search_public_generator(memberAPI, search_result, token_response):
+def test_search_member_generator(memberAPI, search_result, token_response):
     """Test search_member with generator."""
     httpretty.enable()
     SEARCH_URI = "https://api.sandbox.orcid.org/v1.2/search" + \
@@ -152,8 +152,8 @@ def test_search_public_generator(memberAPI, search_result, token_response):
                                "Authorization": "Bearer token"
                            })
     generator = memberAPI.search_member_generator('text:%s' % WORK_NAME)
-    results = generator.next()
-    results = generator.next()
+    results = next(generator)
+    results = next(generator)
     assert results['orcid-profile']['orcid-identifier'][
                    'path'] == u'0000-0002-3874-0894'
     httpretty.disable_()
