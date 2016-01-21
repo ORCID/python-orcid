@@ -252,6 +252,38 @@ class MemberAPI(PublicAPI):
 
         return response['access_token']
 
+    def get_token_by_code(self, authorization_code, redirect_uri):
+        """Like `get_token`, but using an OAuth 2 authorization code.  Use this
+        method if you run a webserver that serves as an endpoint for the
+        redirect URI. The webserver can retrieve the authorization code from
+        the URL that is requested by ORCID.
+
+        Parameters
+        ----------
+        :param redirect_uri: string
+            The redirect uri of the institution.
+        :param authorization_code: string
+            The authorization code.
+
+        Returns
+        -------
+        :returns: dict
+            All data of the access token.  The access token itself is in the
+            ``"access_token"`` key.
+        """
+        session = requests.session()
+        token_dict = {
+            "client_id": self._key,
+            "client_secret": self._secret,
+            "grant_type": "authorization_code",
+            "code": authorization_code,
+            "redirect_uri": redirect_uri,
+        }
+        response = session.post(self._token_url, data=token_dict,
+                                headers={'Accept': 'application/json'})
+        response.raise_for_status()
+        return json.loads(response.text)
+
     def read_record_member(self, orcid_id, request_type, put_code=None):
         """Get the member info about the researcher.
 
@@ -425,18 +457,7 @@ class MemberAPI(PublicAPI):
 
         uri = json.loads(response.text)['redirectUri']['value']
         authorization_code = uri[uri.rfind('=') + 1:]
-
-        token_dict = {
-            "client_id": self._key,
-            "client_secret": self._secret,
-            "grant_type": "authorization_code",
-            "code": authorization_code,
-            "redirect_uri": redirect_uri,
-        }
-        response = session.post(self._token_url, data=token_dict,
-                                headers={'Accept': 'application/json'})
-        response.raise_for_status()
-        return json.loads(response.text)
+        return self.get_token_by_code(redirect_uri, authorization_code)
 
     def _get_access_token_from_orcid(self, scope):
         payload = {'client_id': self._key,
