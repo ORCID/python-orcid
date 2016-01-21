@@ -1,5 +1,10 @@
 """Implementation of python-orcid library."""
 
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    # Python 2
+    from urllib import urlencode
 import simplejson as json
 import requests
 
@@ -173,12 +178,14 @@ class MemberAPI(PublicAPI):
             self._auth_url = 'https://sandbox.orcid.org/signin/auth.json'
             self._authorize_url = \
                 'https://sandbox.orcid.org/oauth/custom/authorize.json'
+            self._login_or_register_endpoint = "https://sandbox.orcid.org/oauth/authorize"
             self._token_url = "https://api.sandbox.orcid.org/oauth/token"
         else:
             self._endpoint_member = "https://api.orcid.org"
             self._auth_url = 'https://orcid.org/signin/auth.json'
             self._authorize_url = \
                 'https://orcid.org/oauth/custom/authorize.json'
+            self._login_or_register_endpoint = "https://orcid.org/oauth/authorize"
             self._token_url = "https://api.orcid.org/oauth/token"
         PublicAPI.__init__(self, sandbox)
 
@@ -422,6 +429,56 @@ class MemberAPI(PublicAPI):
         """
         self._update_activities(orcid_id, token, requests.put, request_type,
                                 data, put_code)
+
+    def compose_orcid_url(self, scope, redirect_uri, state=None,
+                          family_names=None, given_names=None, email=None,
+                          lang=None, show_login=None):
+        """Return a URL for a user to login/register with ORCID.
+
+        Parameters
+        ----------
+        :param scope: string or list of strings
+            The scope(s) of the authorization request.
+        :param redirect_uri: string
+            The URI to which the user's browser should be redirected after the
+            login.
+        :param state: string
+            An arbitrary token to prevent CSRF. See the OAuth 2 docs for
+            details.
+        :param family_names: string
+            The user's family name, used to fill the registration form.
+        :param given_names: string
+            The user's given name, used to fill the registration form.
+        :param email: string
+            The user's email address, used to fill the sign-in or registration
+            form.
+        :param lang: string
+            The language in which to display the authorization page.
+        :param show_login: bool
+            Determines whether the log-in or registration form will be shown by
+            default.
+
+        Yields
+        -------
+        :yields: string
+            The URL ready to be offered as a link to the user.
+        """
+        if not isinstance(scope, basestring):
+            scope = " ".join(scope)
+        data = {"client_id": self._key, "scope": scope, "response_type": "code", "redirect_uri": redirect_uri}
+        if state:
+            data["state"] = state
+        if family_names:
+            data["family_names"] = family_names
+        if given_names:
+            data["given_names"] = given_names
+        if email:
+            data["email"] = email
+        if lang:
+            data["lang"] = lang
+        if show_login is not None:
+            data["show_login"] = "true" if show_login else "false"
+        return self._login_or_register_endpoint + "?" + urlencode(data)
 
     def _authenticate(self, user_id, password, redirect_uri, session, scope):
         response = session.post(self._auth_url,
