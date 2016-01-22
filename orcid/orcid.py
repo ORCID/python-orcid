@@ -178,14 +178,16 @@ class MemberAPI(PublicAPI):
             self._auth_url = 'https://sandbox.orcid.org/signin/auth.json'
             self._authorize_url = \
                 'https://sandbox.orcid.org/oauth/custom/authorize.json'
-            self._login_or_register_endpoint = "https://sandbox.orcid.org/oauth/authorize"
+            self._login_or_register_endpoint = \
+                "https://sandbox.orcid.org/oauth/authorize"
             self._token_url = "https://api.sandbox.orcid.org/oauth/token"
         else:
             self._endpoint_member = "https://api.orcid.org"
             self._auth_url = 'https://orcid.org/signin/auth.json'
             self._authorize_url = \
                 'https://orcid.org/oauth/custom/authorize.json'
-            self._login_or_register_endpoint = "https://orcid.org/oauth/authorize"
+            self._login_or_register_endpoint = \
+                "https://orcid.org/oauth/authorize"
             self._token_url = "https://api.orcid.org/oauth/token"
         PublicAPI.__init__(self, sandbox)
 
@@ -260,10 +262,11 @@ class MemberAPI(PublicAPI):
         return response['access_token']
 
     def get_token_by_code(self, authorization_code, redirect_uri):
-        """Like `get_token`, but using an OAuth 2 authorization code.  Use this
-        method if you run a webserver that serves as an endpoint for the
-        redirect URI. The webserver can retrieve the authorization code from
-        the URL that is requested by ORCID.
+        """Like `get_token`, but using an OAuth 2 authorization code.
+
+        Use this method if you run a webserver that serves as an endpoint for
+        the redirect URI. The webserver can retrieve the authorization code
+        from the URL that is requested by ORCID.
 
         Parameters
         ----------
@@ -465,7 +468,8 @@ class MemberAPI(PublicAPI):
         """
         if not isinstance(scope, basestring):
             scope = " ".join(scope)
-        data = {"client_id": self._key, "scope": scope, "response_type": "code", "redirect_uri": redirect_uri}
+        data = {"client_id": self._key, "scope": scope,
+                "response_type": "code", "redirect_uri": redirect_uri}
         if state:
             data["state"] = state
         if family_names:
