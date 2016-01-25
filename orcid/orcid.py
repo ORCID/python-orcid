@@ -15,7 +15,6 @@ __version__ = "0.5.1"
 
 
 class PublicAPI(object):
-
     """Public API."""
 
     def __init__(self, sandbox=False):
@@ -159,7 +158,6 @@ class PublicAPI(object):
 
 
 class MemberAPI(PublicAPI):
-
     """Member API."""
 
     def __init__(self, institution_key, institution_secret, sandbox=False):
@@ -261,7 +259,8 @@ class MemberAPI(PublicAPI):
 
         return response['access_token']
 
-    def get_token_from_authorization_code(self, authorization_code, redirect_uri):
+    def get_token_from_authorization_code(self, authorization_code,
+                                          redirect_uri):
         """Like `get_token`, but using an OAuth 2 authorization code.
 
         Use this method if you run a webserver that serves as an endpoint for
