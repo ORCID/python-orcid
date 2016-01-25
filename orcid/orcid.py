@@ -469,21 +469,21 @@ class MemberAPI(PublicAPI):
             The URL ready to be offered as a link to the user.
         """
         if not isinstance(scope, string_types):
-            scope = " ".join(scope)
-        data = {"client_id": self._key, "scope": scope,
-                "response_type": "code", "redirect_uri": redirect_uri}
+            scope = " ".join(sorted(set(scope)))
+        data = [("client_id", self._key), ("scope", scope),
+                ("response_type", "code"), ("redirect_uri", redirect_uri)]
         if state:
-            data["state"] = state
+            data.append(("state", state))
         if family_names:
-            data["family_names"] = family_names
+            data.append(("family_names", family_names))
         if given_names:
-            data["given_names"] = given_names
+            data.append(("given_names", given_names))
         if email:
-            data["email"] = email
+            data.append(("email", email))
         if lang:
-            data["lang"] = lang
+            data.append(("lang", lang))
         if show_login is not None:
-            data["show_login"] = "true" if show_login else "false"
+            data.append(("show_login", "true" if show_login else "false"))
         return self._login_or_register_endpoint + "?" + urlencode(data)
 
     def _authenticate(self, user_id, password, redirect_uri, session, scope):
