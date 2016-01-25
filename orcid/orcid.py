@@ -466,7 +466,7 @@ class MemberAPI(PublicAPI):
         :yields: string
             The URL ready to be offered as a link to the user.
         """
-        if not isinstance(scope, basestring):
+        if isinstance(scope, (list, tuple)):
             scope = " ".join(scope)
         data = {"client_id": self._key, "scope": scope,
                 "response_type": "code", "redirect_uri": redirect_uri}
