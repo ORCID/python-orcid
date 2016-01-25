@@ -461,9 +461,9 @@ class MemberAPI(PublicAPI):
             Determines whether the log-in or registration form will be shown by
             default.
 
-        Yields
+        Returns
         -------
-        :yields: string
+        :returns: string
             The URL ready to be offered as a link to the user.
         """
         if isinstance(scope, (list, tuple)):
