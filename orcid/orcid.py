@@ -433,9 +433,9 @@ class MemberAPI(PublicAPI):
         self._update_activities(orcid_id, token, requests.put, request_type,
                                 data, put_code)
 
-    def compose_orcid_url(self, scope, redirect_uri, state=None,
-                          family_names=None, given_names=None, email=None,
-                          lang=None, show_login=None):
+    def get_login_url(self, scope, redirect_uri, state=None,
+                      family_names=None, given_names=None, email=None,
+                      lang=None, show_login=None):
         """Return a URL for a user to login/register with ORCID.
 
         Parameters
