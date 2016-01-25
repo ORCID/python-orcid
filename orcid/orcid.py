@@ -261,7 +261,7 @@ class MemberAPI(PublicAPI):
 
         return response['access_token']
 
-    def get_token_by_code(self, authorization_code, redirect_uri):
+    def get_token_from_authorization_code(self, authorization_code, redirect_uri):
         """Like `get_token`, but using an OAuth 2 authorization code.
 
         Use this method if you run a webserver that serves as an endpoint for
@@ -518,7 +518,8 @@ class MemberAPI(PublicAPI):
 
         uri = json.loads(response.text)['redirectUri']['value']
         authorization_code = uri[uri.rfind('=') + 1:]
-        return self.get_token_by_code(redirect_uri, authorization_code)
+        return self.get_token_from_authorization_code(redirect_uri,
+                                                      authorization_code)
 
     def _get_access_token_from_orcid(self, scope):
         payload = {'client_id': self._key,
