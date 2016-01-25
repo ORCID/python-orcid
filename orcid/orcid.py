@@ -1,10 +1,13 @@
 """Implementation of python-orcid library."""
 
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    # Python 2
+import sys
+if sys.version_info[0] == 2:
     from urllib import urlencode
+    string_types = basestring,
+else:
+    from urllib.parse import urlencode
+    string_types = str,
+
 import simplejson as json
 import requests
 
@@ -439,7 +442,7 @@ class MemberAPI(PublicAPI):
 
         Parameters
         ----------
-        :param scope: string or list of strings
+        :param scope: string or iterable of strings
             The scope(s) of the authorization request.
         :param redirect_uri: string
             The URI to which the user's browser should be redirected after the
@@ -465,7 +468,7 @@ class MemberAPI(PublicAPI):
         :returns: string
             The URL ready to be offered as a link to the user.
         """
-        if isinstance(scope, (list, tuple)):
+        if not isinstance(scope, string_types):
             scope = " ".join(scope)
         data = {"client_id": self._key, "scope": scope,
                 "response_type": "code", "redirect_uri": redirect_uri}
