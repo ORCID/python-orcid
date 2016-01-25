@@ -1,5 +1,8 @@
 """Implementation of python-orcid library."""
 
+import simplejson as json
+import requests
+
 import sys
 if sys.version_info[0] == 2:
     from urllib import urlencode
@@ -7,9 +10,6 @@ if sys.version_info[0] == 2:
 else:
     from urllib.parse import urlencode
     string_types = str,
-
-import simplejson as json
-import requests
 
 SEARCH_VERSION = "/v1.2"
 VERSION = "/v2.0_rc1"
