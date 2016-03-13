@@ -314,3 +314,31 @@ def test_get_token(memberAPI, authorization_code, token_json):
     # The token doesn't change on the sandbox
     assert token == "token"
     httpretty.disable_()
+
+
+def test_get_login_url(memberAPI):
+    """Test constructing a login/registration URL."""
+    redirect_uri = "https://www.inspirehep.net"
+    expected_url = "https://sandbox.orcid.org/oauth/authorize?client_id=id&" \
+        "scope=%2Forcid-profile%2Fread-limited&response_type=code&" \
+        "redirect_uri=https%3A%2F%2Fwww.inspirehep.net"
+    assert memberAPI.get_login_url("/orcid-profile/read-limited",
+                                   redirect_uri) == expected_url
+    assert memberAPI.get_login_url(["/orcid-profile/read-limited"],
+                                   redirect_uri) == expected_url
+    assert memberAPI.get_login_url(2 * ["/orcid-profile/read-limited"],
+                                   redirect_uri) == expected_url
+    kwargs = {"state": "F0OCMU37MV3GMUX1",
+              "family_names": "Carberry", "given_names": "Josiah Stinkney",
+              "email": "j.s.carberry@example.com",
+              "lang": "en", "show_login": True}
+    assert memberAPI.get_login_url(
+        ["/orcid-profile/read-limited", "/affiliations/create",
+         "/orcid-works/create"], redirect_uri, **kwargs) == \
+        "https://sandbox.orcid.org/oauth/authorize?client_id=id&" \
+        "scope=%2Faffiliations%2Fcreate+%2Forcid-profile%2Fread-limited+" \
+        "%2Forcid-works%2Fcreate&response_type=code&" \
+        "redirect_uri=https%3A%2F%2Fwww.inspirehep.net&" \
+        "state=F0OCMU37MV3GMUX1&family_names=Carberry&" \
+        "given_names=Josiah+Stinkney&email=j.s.carberry%40example.com&" \
+        "lang=en&show_login=true"
