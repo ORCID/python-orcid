@@ -89,15 +89,16 @@ PublicAPI
 =========
 
 The public API allows the developers to use the search engine and read author
-records. It is available for everybody.
+records. In order to use it, you need to pass institution's key and secret.
 
 .. code-block:: python
 
     import orcid
-    api = orcid.PublicAPI(sandbox=True)
+    api = orcid.PublicAPI(key=key, secret=secret, sandbox=True)
     search_results = api.search_public('text:English')
     # Get the summary
-    summary = api.read_record_public('0000-0001-1111-1111', 'activities')
+    token = api.get_token(user_id, user_password, redirect_uri)
+    summary = api.read_record_public('0000-0001-1111-1111', 'activities', token)
 
 
 Every record in the `summary` dictionary should contain *put-codes*. Using
@@ -166,7 +167,7 @@ Using the member API, one can add/update/remove records from the ORCID profile.
 .. code-block:: python
 
     put_code = api.add_record(author-orcid, token, 'work',
-                              {'title': {'title': Title'},
+                              {'title': {'title': 'Title'},
                                'type': 'ARTISTIC_PERFORMANCE'})
 
     # Change the type to 'other'
@@ -201,7 +202,13 @@ A minimal example, only the mandatory fields are filled.
 
     {
         'title': {'title': 'API Test Title'},
-        'type': 'JOURNAL_ARTICLE'
+        'type': 'JOURNAL_ARTICLE',
+        'external-ids': [{
+            'external-id': [{
+                'external-id-type': 'source-work-id',
+                'external-id-value': '1234'
+            }]
+        }]
     }
 
 An example where all the fields are filled.
@@ -213,8 +220,6 @@ An example where all the fields are filled.
                   'subtitle': 'My Subtitle',
                   'translated-title':
                         {'language-code': 'pl',
-                         # Remember to use unicode strings for non ASCII
-                         # charactes!
                          'value': u'API Tytuł testowy'}
                  },
         'journal-title': 'Journal Title',
@@ -243,14 +248,15 @@ An example where all the fields are filled.
         },
         # See http://members.orcid.org/api/supported-work-types
         'type': 'JOURNAL_ARTICLE',
-        'publication_date': {'year': 2010,
+        'publication-date': {'year': 2010,
                              'month': 11,
                              'day': 10
         },
         # See http://members.orcid.org/api/supported-work-identifiers
-        'external-identifiers': { 'work-external-identifier':[{
-            'external-identifier-type': 'SOURCE_WORK_ID',
-            'external-identifier-id': '1234'
+        'external-ids': { 'external-id':[{
+            'external-id-type': 'source-work-id',
+            'external-id-value': '1234',
+            'external-id-url': 'www.example.com/12344'
         }]},
         'url': 'https://github.com/MSusik/python-orcid',
         'contributors': {'contributor': [{
@@ -262,18 +268,15 @@ An example where all the fields are filled.
                 # 'AUTHOR'
                 # 'ASSIGNEE'
                 # 'EDITOR'
-                # 'CHAIR-OR-TRANSLATOR'
-                # 'CO-INVESTIGATOR'
-                # 'CO-INVENTOR'
-                # 'GRADUATE-STUDENT'
-                # 'OTHER-INVENTOR'
-                # 'PRINCIPAL-INVESTIGATOR'
-                # 'POSTDOCTORAL-RESEARCHER'
-                # 'SUPPORT-STAFF'
-                # 'LEAD'
-                # 'CO LEAD'
-                # 'SUPPORTED BY'
-                'role': 'AUTHOR',
+                # 'CHAIR_OR_TRANSLATOR'
+                # 'CO_INVESTIGATOR'
+                # 'CO_INVENTOR'
+                # 'GRADUATE_STUDENT'
+                # 'OTHER_INVENTOR'
+                # 'PRINCIPAL_INVESTIGATOR'
+                # 'POSTDOCTORAL_RESEARCHER'
+                # 'SUPPORT_STAFF'
+                'contributor-role': 'SUPPORT_STAFF',
                 # One of 'ADDITIONAL', 'FIRST'
                 'contributor-sequence': 'ADDITIONAL'
             }

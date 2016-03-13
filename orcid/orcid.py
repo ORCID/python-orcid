@@ -1,8 +1,8 @@
 """Implementation of python-orcid library."""
 
-import simplejson as json
+from bs4 import BeautifulSoup
 import requests
-
+import simplejson as json
 import sys
 if sys.version_info[0] == 2:
     from urllib import urlencode
@@ -11,16 +11,17 @@ else:
     from urllib.parse import urlencode
     string_types = str,
 
-SEARCH_VERSION = "/v1.2"
-VERSION = "/v2.0_rc1"
 
-__version__ = "0.5.1"
+SEARCH_VERSION = "/v1.2"
+VERSION = "/v2.0_rc2"
+
+__version__ = "0.6.0"
 
 
 class PublicAPI(object):
     """Public API."""
 
-    def __init__(self, sandbox=False):
+    def __init__(self, institution_key, institution_secret, sandbox=False):
         """Initialize public API.
 
         Parameters
@@ -29,12 +30,136 @@ class PublicAPI(object):
             Should the sandbox be used. False (default) indicates production
             mode.
         """
+        self._key = institution_key
+        self._secret = institution_secret
         if sandbox:
             self._endpoint_public = "https://pub.sandbox.orcid.org"
+            self._host = "sandbox.orcid.org"
+            self._login_or_register_endpoint = \
+                "https://sandbox.orcid.org/oauth/authorize"
+            self._login_url = \
+                "https://sandbox.orcid.org/oauth/custom/login.json"
+            self._token_url = "https://api.sandbox.orcid.org/oauth/token"
         else:
             self._endpoint_public = "https://pub.orcid.org"
+            self._host = "orcid.org"
+            self._login_or_register_endpoint = \
+                "https://orcid.org/oauth/authorize"
+            self._login_url = \
+                'https://orcid.org/oauth/custom/login.json'
+            self._token_url = "https://api.orcid.org/oauth/token"
 
-    def read_record_public(self, orcid_id, request_type, put_code=None):
+    def get_login_url(self, scope, redirect_uri, state=None,
+                      family_names=None, given_names=None, email=None,
+                      lang=None, show_login=None):
+        """Return a URL for a user to login/register with ORCID.
+
+        Parameters
+        ----------
+        :param scope: string or iterable of strings
+            The scope(s) of the authorization request.
+            For example '/authenticate'
+        :param redirect_uri: string
+            The URI to which the user's browser should be redirected after the
+            login.
+        :param state: string
+            An arbitrary token to prevent CSRF. See the OAuth 2 docs for
+            details.
+        :param family_names: string
+            The user's family name, used to fill the registration form.
+        :param given_names: string
+            The user's given name, used to fill the registration form.
+        :param email: string
+            The user's email address, used to fill the sign-in or registration
+            form.
+        :param lang: string
+            The language in which to display the authorization page.
+        :param show_login: bool
+            Determines whether the log-in or registration form will be shown by
+            default.
+
+        Returns
+        -------
+        :returns: string
+            The URL ready to be offered as a link to the user.
+        """
+        if not isinstance(scope, string_types):
+            scope = " ".join(sorted(set(scope)))
+        data = [("client_id", self._key), ("scope", scope),
+                ("response_type", "code"), ("redirect_uri", redirect_uri)]
+        if state:
+            data.append(("state", state))
+        if family_names:
+            data.append(("family_names", family_names))
+        if given_names:
+            data.append(("given_names", given_names))
+        if email:
+            data.append(("email", email))
+        if lang:
+            data.append(("lang", lang))
+        if show_login is not None:
+            data.append(("show_login", "true" if show_login else "false"))
+        return self._login_or_register_endpoint + "?" + urlencode(data)
+
+    def get_token(self, user_id, password, redirect_uri,
+                  scope='/activities/update'):
+        """Get the token.
+
+        Parameters
+        ----------
+        :param user_id: string
+            The id of the user used for authentication.
+        :param password: string
+            The user password.
+        :param redirect_uri: string
+            The redirect uri of the institution.
+        :param scope: string
+            The desired scope. For example '/activities/update',
+            '/read-limited', etc.
+
+        Returns
+        -------
+        :returns: string
+            The token.
+        """
+        response = self._authenticate(user_id, password, redirect_uri,
+                                      scope)
+        return response['access_token']
+
+    def get_token_from_authorization_code(self,
+                                          authorization_code, redirect_uri):
+        """Like `get_token`, but using an OAuth 2 authorization code.
+
+        Use this method if you run a webserver that serves as an endpoint for
+        the redirect URI. The webserver can retrieve the authorization code
+        from the URL that is requested by ORCID.
+
+        Parameters
+        ----------
+        :param redirect_uri: string
+            The redirect uri of the institution.
+        :param authorization_code: string
+            The authorization code.
+
+        Returns
+        -------
+        :returns: dict
+            All data of the access token.  The access token itself is in the
+            ``"access_token"`` key.
+        """
+        token_dict = {
+            "client_id": self._key,
+            "client_secret": self._secret,
+            "grant_type": "authorization_code",
+            "code": authorization_code,
+            "redirect_uri": redirect_uri,
+        }
+        response = requests.post(self._token_url, data=token_dict,
+                                 headers={'Accept': 'application/json'})
+        response.raise_for_status()
+        return json.loads(response.text)
+
+    def read_record_public(self, orcid_id, request_type, token, put_code=None):
         """Get the public info about the researcher.
 
         Parameters
@@ -54,7 +179,7 @@ class PublicAPI(object):
             Records.
         """
         return self._get_info(orcid_id, self._get_public_info, request_type,
-                              put_code)
+                              token, put_code)
 
     def search_public(self, query, method="lucene", start=None, rows=None,
                       search_field="orcid-bio"):
@@ -127,23 +252,72 @@ class PublicAPI(object):
                 yield result
             index += pagination
 
-    def _get_info(self, orcid_id, function, request_type, put_code=None):
+    def _authenticate(self, user_id, password, redirect_uri, scope):
+
+        session = requests.session()
+        session.get('https://' + self._host + '/signout')
+        params = {
+            'client_id': self._key,
+            'response_type': 'code',
+            'scope': scope,
+            'redirect_uri': redirect_uri
+        }
+
+        response = session.get(self._login_or_register_endpoint,
+                               params=params,
+                               headers={'Host': self._host})
+
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        csrf = soup.find(attrs={'name': '_csrf'}).attrs['content']
+        headers = {
+            'Host': self._host,
+            'Origin': 'https://' + self._host,
+            'Content-Type': 'application/json;charset=UTF-8',
+            'X-CSRF-TOKEN': csrf
+        }
+
+        data = {
+            "userName": user_id,
+            "password": password,
+            "approved": True,
+            "persistentTokenEnabled": True,
+            "redirectUrl": None
+        }
+
+        response = session.post(
+            self._login_url,
+            data=json.dumps(data),
+            headers=headers
+        )
+        response.raise_for_status()
+
+        uri = json.loads(response.text)['redirectUrl']
+        authorization_code = uri[uri.rfind('=') + 1:]
+
+        return self.get_token_from_authorization_code(authorization_code,
+                                                      redirect_uri)
+
+    def _get_info(self, orcid_id, function, request_type, token,
+                  put_code=None):
         if request_type != "activities" and not put_code:
             raise ValueError("""In order to fetch specific record,
                                 please specify the 'put_code' argument.""")
         elif request_type == "activities" and put_code:
             raise ValueError("""In order to fetch activities summary, the 'id'
                                 argument is redundant.""")
-        response = function(orcid_id, request_type, put_code)
+        response = function(orcid_id, request_type, token, put_code)
         response.raise_for_status()
         return response.json()
 
-    def _get_public_info(self, orcid_id, request_type, put_code):
+    def _get_public_info(self, orcid_id, request_type, access_token, put_code):
         request_url = '%s/%s/%s' % (self._endpoint_public + VERSION,
                                     orcid_id, request_type)
         if put_code:
             request_url += '/%s' % put_code
-        headers = {'Accept': 'application/orcid+json'}
+        headers = {'Accept': 'application/orcid+json',
+                   'Authorization:': 'Bearer %s' % access_token}
         return requests.get(request_url, headers=headers)
 
     def _search(self, query, method, start, rows, search_field, headers,
@@ -172,25 +346,18 @@ class MemberAPI(PublicAPI):
             Should the sandbox be used. False (default) indicates production
             mode.
         """
-        self._key = institution_key
-        self._secret = institution_secret
         if sandbox:
             self._endpoint_member = "https://api.sandbox.orcid.org"
             self._auth_url = 'https://sandbox.orcid.org/signin/auth.json'
             self._authorize_url = \
                 'https://sandbox.orcid.org/oauth/custom/authorize.json'
-            self._login_or_register_endpoint = \
-                "https://sandbox.orcid.org/oauth/authorize"
-            self._token_url = "https://api.sandbox.orcid.org/oauth/token"
         else:
             self._endpoint_member = "https://api.orcid.org"
             self._auth_url = 'https://orcid.org/signin/auth.json'
             self._authorize_url = \
                 'https://orcid.org/oauth/custom/authorize.json'
-            self._login_or_register_endpoint = \
-                "https://orcid.org/oauth/authorize"
-            self._token_url = "https://api.orcid.org/oauth/token"
-        PublicAPI.__init__(self, sandbox)
+
+        PublicAPI.__init__(self, institution_key, institution_secret, sandbox)
 
     def add_record(self, orcid_id, token, request_type, data):
         """Add a record to a profile.
@@ -233,70 +400,12 @@ class MemberAPI(PublicAPI):
         :returns: string
             The orcid.
         """
-        session = requests.session()
-        response = self._authenticate(user_id, password, redirect_uri, session,
+        response = self._authenticate(user_id, password, redirect_uri,
                                       '/authenticate')
 
         return response['orcid']
 
-    def get_token(self, user_id, password, redirect_uri):
-        """Get the token for updating the records.
-
-        Parameters
-        ----------
-        :param user_id: string
-            The id of the user used for authentication.
-        :param password: string
-            The user password.
-        :param redirect_uri: string
-            The redirect uri of the institution.
-
-        Returns
-        -------
-        :returns: string
-            The token.
-        """
-        session = requests.session()
-        response = self._authenticate(user_id, password, redirect_uri, session,
-                                      '/activities/update')
-
-        return response['access_token']
-
-    def get_token_from_authorization_code(self, authorization_code,
-                                          redirect_uri):
-        """Like `get_token`, but using an OAuth 2 authorization code.
-
-        Use this method if you run a webserver that serves as an endpoint for
-        the redirect URI. The webserver can retrieve the authorization code
-        from the URL that is requested by ORCID.
-
-        Parameters
-        ----------
-        :param redirect_uri: string
-            The redirect uri of the institution.
-        :param authorization_code: string
-            The authorization code.
-
-        Returns
-        -------
-        :returns: dict
-            All data of the access token.  The access token itself is in the
-            ``"access_token"`` key.
-        """
-        session = requests.session()
-        token_dict = {
-            "client_id": self._key,
-            "client_secret": self._secret,
-            "grant_type": "authorization_code",
-            "code": authorization_code,
-            "redirect_uri": redirect_uri,
-        }
-        response = session.post(self._token_url, data=token_dict,
-                                headers={'Accept': 'application/json'})
-        response.raise_for_status()
-        return json.loads(response.text)
-
-    def read_record_member(self, orcid_id, request_type, put_code=None):
+    def read_record_member(self, orcid_id, request_type, token, put_code=None):
         """Get the member info about the researcher.
 
         Parameters
@@ -318,7 +427,7 @@ class MemberAPI(PublicAPI):
             Records.
         """
         return self._get_info(orcid_id, self._get_member_info, request_type,
-                              put_code)
+                              token, put_code)
 
     def remove_record(self, orcid_id, token, request_type, put_code):
         """Add a record to a profile.
@@ -435,94 +544,6 @@ class MemberAPI(PublicAPI):
         self._update_activities(orcid_id, token, requests.put, request_type,
                                 data, put_code)
 
-    def get_login_url(self, scope, redirect_uri, state=None,
-                      family_names=None, given_names=None, email=None,
-                      lang=None, show_login=None):
-        """Return a URL for a user to login/register with ORCID.
-
-        Parameters
-        ----------
-        :param scope: string or iterable of strings
-            The scope(s) of the authorization request.
-        :param redirect_uri: string
-            The URI to which the user's browser should be redirected after the
-            login.
-        :param state: string
-            An arbitrary token to prevent CSRF. See the OAuth 2 docs for
-            details.
-        :param family_names: string
-            The user's family name, used to fill the registration form.
-        :param given_names: string
-            The user's given name, used to fill the registration form.
-        :param email: string
-            The user's email address, used to fill the sign-in or registration
-            form.
-        :param lang: string
-            The language in which to display the authorization page.
-        :param show_login: bool
-            Determines whether the log-in or registration form will be shown by
-            default.
-
-        Returns
-        -------
-        :returns: string
-            The URL ready to be offered as a link to the user.
-        """
-        if not isinstance(scope, string_types):
-            scope = " ".join(sorted(set(scope)))
-        data = [("client_id", self._key), ("scope", scope),
-                ("response_type", "code"), ("redirect_uri", redirect_uri)]
-        if state:
-            data.append(("state", state))
-        if family_names:
-            data.append(("family_names", family_names))
-        if given_names:
-            data.append(("given_names", given_names))
-        if email:
-            data.append(("email", email))
-        if lang:
-            data.append(("lang", lang))
-        if show_login is not None:
-            data.append(("show_login", "true" if show_login else "false"))
-        return self._login_or_register_endpoint + "?" + urlencode(data)
-
-    def _authenticate(self, user_id, password, redirect_uri, session, scope):
-        response = session.post(self._auth_url,
-                                data={'userId': user_id, 'password': password})
-        response.raise_for_status()
-
-        response = session.get('https://sandbox.orcid.org/oauth/' +
-                               'authorize?client_id=' + self._key +
-                               '&response_type=code&scope=' + scope +
-                               '&redirect_uri=' + redirect_uri)
-
-        response.raise_for_status()
-        session.close()
-
-        json_dict = {
-            "clientId": self._key,
-            "redirectUri": redirect_uri,
-            "scope": scope,
-            "responseType": "code",
-            "approved": "true",
-            "persistentTokenEnabled": "true"
-        }
-        headers = {
-           'Accept': 'text/plain',
-           'Content-Type': 'application/json;charset=UTF-8'
-        }
-        response = session.post(self._authorize_url,
-                                data=json.dumps(json_dict),
-                                headers=headers
-                                )
-        response.raise_for_status()
-        session.close()
-
-        uri = json.loads(response.text)['redirectUri']['value']
-        authorization_code = uri[uri.rfind('=') + 1:]
-        return self.get_token_from_authorization_code(redirect_uri,
-                                                      authorization_code)
-
     def _get_access_token_from_orcid(self, scope):
         payload = {'client_id': self._key,
                    'client_secret': self._secret,
@@ -537,7 +558,7 @@ class MemberAPI(PublicAPI):
         response.raise_for_status()
         return response.json()['access_token']
 
-    def _get_member_info(self, orcid_id, request_type, put_code):
+    def _get_member_info(self, orcid_id, request_type, token, put_code):
         access_token = self. \
             _get_access_token_from_orcid('/activities/read-limited')
         request_url = '%s/%s/%s' % (self._endpoint_member + VERSION,

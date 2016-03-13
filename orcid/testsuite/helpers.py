@@ -1,284 +1,76 @@
-"""Helper functions and response bodies for tests."""
-
-import functools
-import pytest
+# -*- coding: utf-8 -*-
+"""Constants and helpers for python-orcid library."""
 
 
-def import_httpretty():
-    """Import HTTPretty and monkey patch it.
+WORK_NAME2 = u'WY51MF0OCMU37MVGMUX1M92G6FR1IQUW0'
 
-    Monkey patch Python 3.4 issue.
-    Monkey patch pytest fixtures handling.
-
-    See https://github.com/gabrielfalcao/HTTPretty/pull/193 and
-    as well as https://github.com/gabrielfalcao/HTTPretty/issues/221.
-    """
-    import sys
-    PY34 = sys.version_info[0] == 3 and sys.version_info[1] == 4
-    if not PY34:
-        import httpretty
-        httpretty.disable_ = httpretty.disable
-    else:
-        import socket
-        old_SocketType = socket.SocketType
-
-        import httpretty
-        from httpretty import core
-
-        def sockettype_patch(f):
-            @functools.wraps(f)
-            def inner(*args, **kwargs):
-                f(*args, **kwargs)
-                socket.SocketType = old_SocketType
-                socket.__dict__['SocketType'] = old_SocketType
-            return inner
-
-        httpretty.disable_ = sockettype_patch(
-            httpretty.httpretty.disable
-        )
-
-    return httpretty
-
-
-httpretty = import_httpretty()
-
-
-@pytest.fixture
-def search_result():
-    """XML from the search engine."""
-    return '''
-    {
-      "message-version" : "",
-      "orcid-profile" : null,
-      "orcid-search-results" : {
-        "orcid-search-result" : [ {
-          "relevancy-score" : {
-            "value" : 0.98850805
-          },
-          "orcid-profile" : {
-            "orcid" : null,
-            "orcid-id" : null,
-            "orcid-identifier" : {
-              "value" : null,
-              "uri" : "http://sandbox.orcid.org/0000-0002-3874-0894",
-              "path" : "0000-0002-3874-0894",
-              "host" : "sandbox.orcid.org"
-            },
-            "orcid-deprecated" : null,
-            "orcid-preferences" : null,
-            "orcid-history" : null,
-            "orcid-bio" : {
-              "personal-details" : {
-                "given-names" : {
-                  "value" : "inspire003"
-                },
-                "family-name" : {
-                  "value" : "inspire"
-                },
-                "credit-name" : null,
-                "other-names" : null
-              },
-              "biography" : null,
-              "researcher-urls" : null,
-              "contact-details" : null,
-              "keywords" : null,
-              "external-identifiers" : null,
-              "delegation" : null,
-              "applications" : null,
-              "scope" : null
-            },
-            "orcid-activities" : null,
-            "orcid-internal" : null,
-            "type" : null,
-            "group-type" : null,
-            "client-type" : null
-          }
-        } ],
-        "num-found" : 1
-      },
-      "error-desc" : null
-    }
-    '''
-
-
-@pytest.fixture
-def body_all():
-    """JSON describing the whole profile activity."""
-    return """
-        {
-          "educations" : null,
-          "employments" : null,
-          "fundings" : {
-            "group" : [ ]
-          },
-          "peer-reviews" : {
-            "group" : null
-          },
-          "works" : {
-            "group" : [ {
-              "identifiers" : null,
-              "work-summary" : [ {
-                "put-code" : "477441",
-                "created-date" : null,
-                "last-modified-date" : null,
-                "source" : {
-                  "source-orcid" : {
-                    "uri" : "http://sandbox.orcid.org/0000-0002-3874-0894",
-                    "path" : "0000-0002-3874-0894",
-                    "host" : "sandbox.orcid.org"
+exemplary_work = {
+        'title': {'title': WORK_NAME2,
+                  'subtitle': 'My Subtitle',
+                  'translated-title': {
+                    'language-code': 'pl',
+                    'value': u'API Tytuł testowy'}
                   },
-                  "source-client-id" : null,
-                  "source-name" : {
-                    "value" : "inspire003 inspire"
-                  }
-                },
-                "title" : {
-                  "title" : {
-                    "value" : "WY51MF0OCMU37MVGMUX1M92G6FR1IQUW"
-                  },
-                  "subtitle" : null,
-                  "translated-title" : null
-                },
-                "external-identifiers" : {
-                  "work-external-identifier" : [ {
-                    "external-identifier-type" : null,
-                    "external-identifier-id" : null
-                  } ]
-                },
-                "type" : "BOOK",
-                "publication-date" : null,
-                "visibility" : "PUBLIC",
-                "path" : "/0000-0002-3874-0894/work/477441",
-                "display-index" : "0"
-              } ]
-            } ]
-          }
-        }
-    """
-
-
-@pytest.fixture
-def body_none():
-    """JSON describing the whole profile activity."""
-    return """
-        {
-          "educations" : null,
-          "employments" : null,
-          "fundings" : {
-            "group" : [ ]
-          },
-          "peer-reviews" : {
-            "group" : null
-          },
-          "works" : {
-            "group" : [ ]
-          }
-        }
-    """
-
-
-@pytest.fixture
-def body_single_work():
-    """JSON describing single work."""
-    return """
-        {
-          "put-code" : "477441",
-          "path" : "/0000-0002-3874-0894/work/477441",
-          "source" : {
-            "source-orcid" : {
-              "uri" : "http://sandbox.orcid.org/0000-0002-3874-0894",
-              "path" : "0000-0002-3874-0894",
-              "host" : "sandbox.orcid.org"
-            },
-            "source-client-id" : null,
-            "source-name" : {
-              "value" : "inspire003 inspire"
+        'journal-title': 'Journal Title',
+        'short-description': 'My abstract',
+        'citation': {
+            'citation': '''@article {ORCIDtest2014,
+                           author = "Lastname, Firstname",
+                           title = "API Test Title",
+                           journal = "Journal Title",
+                           volume = "25",
+                           number = "4",
+                           year = "2010",
+                           pages = "259-264",
+                           doi = "doi:10.1087/20120404"
+                         }''',
+            # Available types:
+            # 'FORMATTED-UNSPECIFIED'
+            # 'BIBTEX'
+            # 'FORMATTED_APA'
+            # 'FORMATTED_HARVARD'
+            # 'FORMATTED_IEEE'
+            # 'FORMATTED_MLA'
+            # 'FORMATTED_VANCOUVER'
+            # 'FORMATTED_CHICAGO'
+            'citation-type': 'BIBTEX'
+        },
+        # See http://members.orcid.org/api/supported-work-types
+        'type': 'JOURNAL_ARTICLE',
+        'publication-date': {'year': 2010,
+                             'month': 11,
+                             'day': 10
+                             },
+        # See http://members.orcid.org/api/supported-work-identifiers
+        'external-ids': {'external-id': [{
+            'external-id-type': 'source-work-id',
+            'external-id-value': '1234',
+            'external-id-url': 'www.example.com/12344'
+        }]},
+        'url': 'https://github.com/MSusik/python-orcid',
+        'contributors': {'contributor': [{
+            'credit-name': 'LastName, FirstName',
+            'contributor-orcid': '0000-0001-5109-3700',
+            'contributor-email': 'somebody@mailinator.com',
+            'contributor-attributes': {
+                # Supported roles:
+                # 'AUTHOR'
+                # 'ASSIGNEE'
+                # 'EDITOR'
+                # 'CHAIR_OR_TRANSLATOR'
+                # 'CO_INVESTIGATOR'
+                # 'CO_INVENTOR'
+                # 'GRADUATE_STUDENT'
+                # 'OTHER_INVENTOR'
+                # 'PRINCIPAL_INVESTIGATOR'
+                # 'POSTDOCTORAL_RESEARCHER'
+                # 'SUPPORT_STAFF'
+                'contributor-role': 'SUPPORT_STAFF',
+                # One of 'ADDITIONAL', 'FIRST'
+                'contributor-sequence': 'ADDITIONAL'
             }
-          },
-          "createdDate" : null,
-          "lastModifiedDate" : null,
-          "title" : {
-            "title" : {
-              "value" : "WY51MF0OCMU37MVGMUX1M92G6FR1IQUW"
-            },
-            "subtitle" : null,
-            "translated-title" : null
-          },
-          "journal-title" : null,
-          "short-description" : null,
-          "citation" : {
-            "citation-type" : "FORMATTED_UNSPECIFIED",
-            "citation" : null
-          },
-          "type" : "BOOK",
-          "publication-date" : null,
-          "external-identifiers" : {
-            "work-external-identifier" : [ {
-              "external-identifier-type" : null,
-              "external-identifier-id" : null
-            } ]
-          },
-          "url" : null,
-          "contributors" : {
-            "contributor" : [ ]
-          },
-          "language-code" : null,
-          "country" : null,
-          "visibility" : "PUBLIC"
-        }
-    """
-
-
-@pytest.fixture
-def token_response():
-    """JSON with a token."""
-    return """
-        {
-         "access_token":"token",
-         "token_type":"bearer",
-         "expires_in":631138518,
-         "scope":"all of them :)",
-         "orcid":null
-        }
-    """
-
-
-@pytest.fixture
-def authorization_code():
-    """JSON with authorization code."""
-    return """
-        {"errors":[],
-         "userName":null,
-         "password":null,
-         "clientId":{"errors":[],
-                     "value":"0000-0002-0970-6486",
-                     "required":true,
-                     "getRequiredMessage":null},
-         "redirectUri":{"errors":[],
-                        "value":"https://www.inspirehep.net?code=4zDk4L",
-                        "required":true,
-                        "getRequiredMessage":null},
-         "scope":{"errors":[],
-                  "value":"/activities/update",
-                  "required":true,
-                  "getRequiredMessage":null},
-         "responseType":{"errors":[],
-                         "value":"code",
-                         "required":true,
-                         "getRequiredMessage":null},
-         "approved":true,
-         "persistentTokenEnabled":true}
-    """
-
-
-@pytest.fixture
-def token_json():
-    """JSON with token included."""
-    return """
-        {"access_token":"token",
-         "token_type":"bearer",
-         "expires_in":631138518,
-         "scope":"/activities/update",
-         "orcid":"0000-0002-3874-0894",
-         "name":"inspire003 inspire"}
-    """
+        }]},
+        # ISO-629-1: http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+        'language-code': 'en',
+        'country': {'value': 'US', 'visibility': 'PUBLIC'}
+    }
