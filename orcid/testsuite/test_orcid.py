@@ -3,8 +3,11 @@
 import os
 import pytest
 import re
+from uuid import uuid4
 
-from orcid import MemberAPI, PublicAPI
+from orcid import MemberAPI
+from orcid import PublicAPI
+from orcid import SearchAPI
 
 from .helpers import exemplary_work
 from .helpers import WORK_NAME2
@@ -25,8 +28,62 @@ def fullmatch(regex, string, flags=0):
 
 
 @pytest.fixture
+def searchAPI():
+    """Get SearchAPI handler."""
+    return SearchAPI(sandbox=True)
+
+
+def test_search_public(searchAPI):
+    """Test search_public."""
+
+    results = searchAPI.search_public('text:%s' % WORK_NAME)
+    assert results['orcid-search-results']['orcid-search-result'][0][
+                   'orcid-profile']['orcid-identifier'][
+                   'path'] == USER_ORCID
+
+    results = searchAPI.search_public('family-name:Sanchez', start=2, rows=6)
+    # Just check if the request suceeded
+
+    assert results['error-desc'] is None
+
+
+def test_search_public_generator(searchAPI):
+    """Test search public with a generator."""
+
+    results = searchAPI.search_public('text:%s' % WORK_NAME)
+    assert results['orcid-search-results']['orcid-search-result'][0][
+                   'orcid-profile']['orcid-identifier'][
+                   'path'] == USER_ORCID
+
+    generator = searchAPI.search_public_generator('family-name:Sanchez')
+    result = next(generator)
+    result = next(generator)
+    # Just check if the request suceeded
+
+    assert result['relevancy-score']['value'] > 0
+
+
+def test_search_public_generator_no_results(searchAPI):
+    generator = searchAPI.search_public_generator('family-name:' +
+                                                  str(uuid4()))
+
+    with pytest.raises(StopIteration):
+        next(generator)
+
+
+def test_search_public_generator_pagination(searchAPI):
+    generator = searchAPI.search_public_generator('family-name:Sanchez',
+                                                  pagination=1)
+    result = next(generator)
+    result = next(generator)
+    # Just check if the request suceeded
+
+    assert result['relevancy-score']['value'] > 0
+
+
+@pytest.fixture
 def publicAPI():
-    """Get publicAPI handler."""
+    """Get PublicAPI handler."""
     return PublicAPI(sandbox=True,
                      institution_key=CLIENT_KEY,
                      institution_secret=CLIENT_SECRET)
@@ -88,41 +145,17 @@ def test_read_record_public(publicAPI):
     assert "please specify the 'put_code' argument" in str(excinfo.value)
 
 
-def test_search_public(publicAPI):
-    """Test search_public."""
-
-    results = publicAPI.search_public('text:%s' % WORK_NAME)
-    assert results['orcid-search-results']['orcid-search-result'][0][
-                   'orcid-profile']['orcid-identifier'][
-                   'path'] == USER_ORCID
-
-    results = publicAPI.search_public('family-name:Sanchez', start=2, rows=6)
-    # Just check if the request suceeded
-
-    assert results['error-desc'] is None
-
-
-def test_search_public_generator(publicAPI):
-    """Test search public with a generator."""
-
-    results = publicAPI.search_public('text:%s' % WORK_NAME)
-    assert results['orcid-search-results']['orcid-search-result'][0][
-                   'orcid-profile']['orcid-identifier'][
-                   'path'] == USER_ORCID
-
-    generator = publicAPI.search_public_generator('family-name:Sanchez')
-    result = next(generator)
-    result = next(generator)
-    # Just check if the request suceeded
-
-    assert result['relevancy-score']['value'] > 0
-
-
 @pytest.fixture
 def memberAPI():
     """Get memberAPI handler."""
     return MemberAPI(CLIENT_KEY, CLIENT_SECRET,
                      sandbox=True)
+
+
+def test_apis_common_functionalities(memberAPI):
+    """Check if the member API has functionalities of the other apis."""
+    assert hasattr(getattr(memberAPI, 'search_public'), '__call__')
+    assert hasattr(getattr(memberAPI, 'get_token'), '__call__')
 
 
 def test_search_member(memberAPI):

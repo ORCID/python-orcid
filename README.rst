@@ -22,26 +22,17 @@ Mateusz Susik <mateuszsusik@gmail.com>
 Installation
 ------------
 
-.. code-block:: python
+.. code-block:: bash
 
     pip install orcid
-
-
-Running tests
--------------
-
-.. code-block:: python
-
-    python setup.py test
-
 
 Notes
 -----
 
 Currently the library works fully only for the sandbox. It uses API version
-2.0_rc1 wherever it's applicable. Use at your own risk for production systems.
+2.0_rc2 wherever it's applicable. Use at your own risk for production systems.
 
-The library will be stable when the 2.0_rc1 API is released.
+The library will be stable when the 2.0_rc2 API is released.
 
 If there are changes in ORCID API, the library might not work till the changes
 are implemented by me in this library. Pull requests and submitting issues
@@ -50,10 +41,10 @@ are very welcome. Please read CONTRIBUTING.rst in case of suggestions.
 Error handling
 --------------
 
-The methods of this library might throw client or server errors. An error is an
-exception coming from the proven
-`requests <http://docs.python-requests.org/en/latest/>`_ library. The usual way
-to work with them should be:
+The methods of this library might throw client or server errors. An error is 
+an exception coming from the proven
+`requests <http://docs.python-requests.org/en/latest/>`_ library. The usual
+way to work with them should be:
 
 .. code-block:: python
   
@@ -74,10 +65,10 @@ Introduction
 ------------
 
 `ORCID <http://orcid.org/>`_ is an open, non-profit, community-based effort to
-provide a registry of unique researcher identifiers and a transparent method of
-linking research activities and outputs to these identifiers. ORCID is unique
-in its ability to reach across disciplines, research sectors, and national
-boundaries and its cooperation with other identifier systems.
+provide a registry of unique researcher identifiers and a transparent method
+of linking research activities and outputs to these identifiers. ORCID is
+unique in its ability to reach across disciplines, research sectors, and
+national boundaries and its cooperation with other identifier systems.
 
 ORCID offers an API (Application Programming Interface) that allows your
 systems and applications to connect to the ORCID registry, including reading
@@ -85,20 +76,71 @@ from and writing to ORCID records.
 
 There are two types of API available for developers.
 
+SearchAPI
+=========
+
+The search API allows the developers to use the search engine provided
+bo ORCiD. This is the only API that does not require any credentials.
+Please note that currently it uses API 1.2 and will be migrated to 2.0
+in the future. The functionality of this API is available in public
+and member APIs.
+
+Searching
+---------
+
+.. code-block:: python
+
+    import orcid
+    api = orcid.SearchAPI(sandbox=True)
+    search_results = api.search_public('text:English')
+
+
+While creating a search query, it is possible to use a generator in
+order to reduce time needed to fetch a record.
+
+.. code-block:: python
+
+    search_results = api.search_public_generator('text:English',
+                                                 pagination=20)
+    first_result = next(search_results)
+
 PublicAPI
 =========
 
 The public API allows the developers to use the search engine and read author
 records. In order to use it, you need to pass institution's key and secret.
 
+The functionality of this API is also available in the member API.
+
+Token
+-----
+
+In order to read or update records, the ``token`` is needed. The tokens come
+from OAuth 3-legged authorization. You can perform the authorization using
+this library (examples below).
+
+However, if the user is already connected to ORCiD and authenticated (so you
+have an authorization code), this process can be simplified:
+
 .. code-block:: python
 
     import orcid
-    api = orcid.PublicAPI(key=key, secret=secret, sandbox=True)
+    api = orcid.PublicAPI(institution_key, institution_secret, sandbox=True)
+    token = api.get_token_from_authorization_code(authorization_code,
+                                                  redirect_uri)
+
+Reading records
+---------------
+
+.. code-block:: python
+
+    import orcid
+    api = orcid.PublicAPI(institution_key, institution_secret, sandbox=True)
     search_results = api.search_public('text:English')
     # Get the summary
     token = api.get_token(user_id, user_password, redirect_uri)
-    summary = api.read_record_public('0000-0001-1111-1111', 'activities', token)
+    summary = api.read_record_public('0000-0001-1111-1111', 'activities',
+                                     token)
 
 
 Every record in the `summary` dictionary should contain *put-codes*. Using
@@ -110,16 +152,25 @@ record and the put-code need to be provided.
     # Get the specific record
     # Available record types are:
     # 'education', 'employment', 'funding', 'peer-review', 'work'
-    work = api.read_record_public('0000-0001-1111-1111', 'work', '1111')
+    work = api.read_record_public('0000-0001-1111-1111', 'work', token,
+                                  '1111')
+
+Additional utilities
+--------------------
+
+Python-orcid offers a function for creating a login/register URL.
+
+.. code-block:: python
+
+    url = api.get_login_url('/authenticate', redirect_uri, email=email)
 
 
 MemberAPI
 =========
 
-The member API allows the developers to add/change/remove records if their
-code led the user through the authentication process. To modify the records
-one needs a token which can be obtained following the OAuth 3-legged
-authorization process.
+The member API allows the developers to add/change/remove records.
+To modify the records one needs a token which can be obtained following
+the OAuth 3-legged authorization process.
 
 The member API lets the developer obtain more information when using the
 search API or fetching the records.
@@ -130,11 +181,14 @@ institution secret have to be provided.
 .. code-block:: python
 
     import orcid
-    api = orcid.MemberAPI('institution_key', 'institution_secret',
+    api = orcid.MemberAPI(institution_key, institution_secret,
                           sandbox=True)
     search_results = api.search_member('text:English')
     # Get the summary
-    summary = api.read_record_member('0000-0001-1111-1111', 'activities')
+    token = api.get_token(user_id, user_password, redirect_uri,
+                          '/read-limited')
+    summary = api.read_record_member('0000-0001-1111-1111', 'activities',
+                                     token)
 
 All the methods from the public API are available in the member API.
 
@@ -148,16 +202,6 @@ user:
 
     orcid = api.get_user_orcid(user_id, password, redirect_uri)
 
-Token
------
-
-In order to update records, the ``token`` is needed. The tokens come from
-OAuth 3-legged authorization. You can perform the authorization using this
-library:
-
-.. code-block:: python
-
-    token = api.get_token(author_id, author_password, institution_redirect_uri)
 
 Adding/updating/removing records
 --------------------------------
@@ -248,9 +292,9 @@ An example where all the fields are filled.
         },
         # See http://members.orcid.org/api/supported-work-types
         'type': 'JOURNAL_ARTICLE',
-        'publication-date': {'year': 2010,
-                             'month': 11,
-                             'day': 10
+        'publication-date': {'year': '2010',
+                             'month': '11',
+                             'day': '10'
         },
         # See http://members.orcid.org/api/supported-work-identifiers
         'external-ids': { 'external-id':[{
@@ -314,11 +358,11 @@ An example with all the fields used.
         'department-name': 'Department',
         'role-title': 'Researcher (Academic)',
         'start-date': {'year': 2012,
-                       'month': 04,
+                       'month': 4,
                        'day': 10
         },
         'end-date': {'year': 2013,
-                     'month': 04,
+                     'month': 4,
                      'day': 10
         },
         'organization': {
@@ -359,7 +403,12 @@ A minimal example using only the required fields.
                 'country': 'GB'
             },
             'name': 'Funding Agency Name'
-        }
+        },
+        'external-ids': {'external-id': [{
+           'external-id-type': 'grant_number',
+           'external-id-value': '1234',
+           'external-id-url': 'www.funding.com/1234'
+        }]},
     }
 
 An example with all the fields used.
@@ -380,18 +429,17 @@ An example with all the fields used.
                    'value': 1000},
         'url': 'www.orcid.org',
         'start-date': {'year': 2013,
-                       'month': 01,
+                       'month': 1,
                        'day': 10
                        },
         'end-date': {'year': 2014,
-                     'month': 01,
+                     'month': 1,
                      'day': 10
                      },
-        'external-identifiers': {'externalIdentifier': [{
-           # Only allowed value is 'GRANT_NUMBER'
-           'external-identifier-type': 'GRANT_NUMBER',
-           'external-identifier-value': '1234',
-           'external-identifier-url': 'www.funding.com/1234'
+        'external-ids': {'external-id': [{
+           'external-id-type': 'grant_number',
+           'external-id-value': '1234',
+           'external-id-url': 'www.funding.com/1234'
          }]},
         'contributors': {'contributor': [{
             'contributor-orcid': '0000-0003-4494-0734',

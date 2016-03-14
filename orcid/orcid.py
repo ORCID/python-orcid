@@ -18,11 +18,11 @@ VERSION = "/v2.0_rc2"
 __version__ = "0.6.0"
 
 
-class PublicAPI(object):
-    """Public API."""
+class SearchAPI(object):
+    """Search API."""
 
-    def __init__(self, institution_key, institution_secret, sandbox=False):
-        """Initialize public API.
+    def __init__(self, sandbox=False):
+        """Initialize search API.
 
         Parameters
         ----------
@@ -30,10 +30,115 @@ class PublicAPI(object):
             Should the sandbox be used. False (default) indicates production
             mode.
         """
+        if sandbox:
+            self._endpoint_public = "https://pub.sandbox.orcid.org"
+        else:
+            self._endpoint_public = "https://pub.orcid.org"
+
+    def search_public(self, query, method="lucene", start=None, rows=None,
+                      search_field="orcid-bio"):
+        """Search the ORCID database.
+
+        Parameters
+        ----------
+        :param query: string
+            Query in line with the chosen method.
+        :param method: string
+            One of 'lucene', 'edismax', 'dismax'
+        :param start: string
+            Index of the first record requested. Use for pagination.
+        :param rows: string
+            Number of records requested. Use for pagination.
+        :param search_field: string
+            Scope used for seaching. The default one allows to search
+            everywhere.
+
+        Returns
+        -------
+        :returns: dict
+            Search result with error description available. The results can
+            be obtained by accessing keys 'orcid-search-results' and
+            then 'orcid-search-result'. To get the number of all results,
+            access the key 'orcid-search-results' and then 'num-found'.
+        """
+        headers = {'Accept': 'application/orcid+json'}
+
+        return self._search(query, method, start, rows, search_field,
+                            headers, self._endpoint_public)
+
+    def search_public_generator(self, query, method="lucene",
+                                search_field="orcid-bio", pagination=10):
+        """Search the ORCID database with a generator.
+
+        The generator will yield every result.
+
+        Parameters
+        ----------
+        :param query: string
+            Query in line with the chosen method.
+        :param method: string
+            One of 'lucene', 'edismax', 'dismax'
+        :param search_field: string
+            Scope used for seaching. The default one allows to search
+            everywhere.
+        :param pagination: integer
+            How many papers should be fetched with ine request.
+
+        Yields
+        -------
+        :yields: dict
+            Single profile from the search results.
+        """
+        headers = {'Accept': 'application/orcid+json'}
+
+        index = 0
+
+        while True:
+            paginated_result = self._search(query, method, index, pagination,
+                                            search_field, headers,
+                                            self._endpoint_public)
+            if not paginated_result['orcid-search-results'][
+                                    'orcid-search-result']:
+                return
+
+            for result in paginated_result['orcid-search-results'][
+                                           'orcid-search-result']:
+                yield result
+            index += pagination
+
+    def _search(self, query, method, start, rows, search_field, headers,
+                endpoint):
+
+        url = endpoint + SEARCH_VERSION + "/search/" + \
+            search_field + "/?defType=" + method + "&q=" + query
+        if start:
+            url += "&start=%s" % start
+        if rows:
+            url += "&rows=%s" % rows
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
+
+
+class PublicAPI(SearchAPI):
+    """Public API."""
+
+    def __init__(self, institution_key, institution_secret, sandbox=False):
+        """Initialize public API.
+
+        Parameters
+        ----------
+        :param institution_key: string
+            The ORCiD key given to the institution
+        :param institution_secret: string
+            The ORCiD secret given to the institution
+        :param sandbox: boolean
+            Should the sandbox be used. False (default) indicates production
+            mode.
+        """
         self._key = institution_key
         self._secret = institution_secret
         if sandbox:
-            self._endpoint_public = "https://pub.sandbox.orcid.org"
             self._host = "sandbox.orcid.org"
             self._login_or_register_endpoint = \
                 "https://sandbox.orcid.org/oauth/authorize"
@@ -41,13 +146,14 @@ class PublicAPI(object):
                 "https://sandbox.orcid.org/oauth/custom/login.json"
             self._token_url = "https://api.sandbox.orcid.org/oauth/token"
         else:
-            self._endpoint_public = "https://pub.orcid.org"
             self._host = "orcid.org"
             self._login_or_register_endpoint = \
                 "https://orcid.org/oauth/authorize"
             self._login_url = \
                 'https://orcid.org/oauth/custom/login.json'
             self._token_url = "https://api.orcid.org/oauth/token"
+
+        SearchAPI.__init__(self, sandbox)
 
     def get_login_url(self, scope, redirect_uri, state=None,
                       family_names=None, given_names=None, email=None,
@@ -102,7 +208,7 @@ class PublicAPI(object):
         return self._login_or_register_endpoint + "?" + urlencode(data)
 
     def get_token(self, user_id, password, redirect_uri,
-                  scope='/activities/update'):
+                  scope='/read-limited'):
         """Get the token.
 
         Parameters
@@ -181,77 +287,6 @@ class PublicAPI(object):
         return self._get_info(orcid_id, self._get_public_info, request_type,
                               token, put_code)
 
-    def search_public(self, query, method="lucene", start=None, rows=None,
-                      search_field="orcid-bio"):
-        """Search the ORCID database.
-
-        Parameters
-        ----------
-        :param query: string
-            Query in line with the chosen method.
-        :param method: string
-            One of 'lucene', 'edismax', 'dismax'
-        :param start: string
-            Index of the first record requested. Use for pagination.
-        :param rows: string
-            Number of records requested. Use for pagination.
-        :param search_field: string
-            Scope used for seaching. The default one allows to search
-            everywhere.
-
-        Returns
-        -------
-        :returns: dict
-            Search result with error description available. The results can
-            be obtained by accessing keys 'orcid-search-results' and
-            then 'orcid-search-result'. To get the number of all results,
-            access the key 'orcid-search-results' and then 'num-found'.
-        """
-        headers = {'Accept': 'application/orcid+json'}
-
-        return self._search(query, method, start, rows, search_field,
-                            headers, self._endpoint_public)
-
-    def search_public_generator(self, query, method="lucene",
-                                search_field="orcid-bio", pagination=10):
-        """Search the ORCID database with a generator.
-
-        The generator will yield every result.
-
-        Parameters
-        ----------
-        :param query: string
-            Query in line with the chosen method.
-        :param method: string
-            One of 'lucene', 'edismax', 'dismax'
-        :param search_field: string
-            Scope used for seaching. The default one allows to search
-            everywhere.
-        :param pagination: integer
-            How many papers should be fetched with ine request.
-
-        Yields
-        -------
-        :yields: dict
-            Single profile from the search results.
-        """
-        headers = {'Accept': 'application/orcid+json'}
-
-        index = 0
-
-        while True:
-            paginated_result = self._search(query, method, index, pagination,
-                                            search_field, headers,
-                                            self._endpoint_public)
-            if not paginated_result['orcid-search-results'][
-                                    'orcid-search-result']:
-                return
-
-            for result in paginated_result['orcid-search-results'][
-                                           'orcid-search-result']:
-                yield result
-            index += pagination
-
     def _authenticate(self, user_id, password, redirect_uri, scope):
 
         session = requests.session()
@@ -320,19 +355,6 @@ class PublicAPI(object):
                    'Authorization:': 'Bearer %s' % access_token}
         return requests.get(request_url, headers=headers)
 
-    def _search(self, query, method, start, rows, search_field, headers,
-                endpoint):
-
-        url = endpoint + SEARCH_VERSION + "/search/" + \
-            search_field + "/?defType=" + method + "&q=" + query
-        if start:
-            url += "&start=%s" % start
-        if rows:
-            url += "&rows=%s" % rows
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        return response.json()
-
 
 class MemberAPI(PublicAPI):
     """Member API."""
@@ -342,6 +364,10 @@ class MemberAPI(PublicAPI):
 
         Parameters
         ----------
+        :param institution_key: string
+            The ORCiD key given to the institution
+        :param institution_secret: string
+            The ORCiD secret given to the institution
         :param sandbox: boolean
             Should the sandbox be used. False (default) indicates production
             mode.
@@ -382,6 +408,31 @@ class MemberAPI(PublicAPI):
         """
         return self._update_activities(orcid_id, token, requests.post,
                                        request_type, data)
+
+    def get_token(self, user_id, password, redirect_uri,
+                  scope='/activities/update'):
+        """Get the token.
+
+        Parameters
+        ----------
+        :param user_id: string
+
+            The id of the user used for authentication.
+        :param password: string
+            The user password.
+        :param redirect_uri: string
+            The redirect uri of the institution.
+        :param scope: string
+            The desired scope. For example '/activities/update',
+            '/read-limited', etc.
+
+        Returns
+        -------
+        :returns: string
+            The token.
+        """
+        return super(MemberAPI, self).get_token(user_id, password,
+                                                redirect_uri, scope)
 
     def get_user_orcid(self, user_id, password, redirect_uri):
         """Get the user orcid from authentication process.
