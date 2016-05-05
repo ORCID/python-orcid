@@ -50,7 +50,7 @@ class SearchAPI(object):
         :param rows: string
             Number of records requested. Use for pagination.
         :param search_field: string
-            Scope used for seaching. The default one allows to search
+            Scope used for searching. The default one allows to search
             everywhere.
 
         Returns
@@ -82,7 +82,7 @@ class SearchAPI(object):
             Scope used for seaching. The default one allows to search
             everywhere.
         :param pagination: integer
-            How many papers should be fetched with ine request.
+            How many papers should be fetched with the request.
 
         Yields
         -------
@@ -129,9 +129,9 @@ class PublicAPI(SearchAPI):
         Parameters
         ----------
         :param institution_key: string
-            The ORCiD key given to the institution
+            The ORCID key given to the institution
         :param institution_secret: string
-            The ORCiD secret given to the institution
+            The ORCID secret given to the institution
         :param sandbox: boolean
             Should the sandbox be used. False (default) indicates production
             mode.
@@ -365,9 +365,9 @@ class MemberAPI(PublicAPI):
         Parameters
         ----------
         :param institution_key: string
-            The ORCiD key given to the institution
+            The ORCID key given to the institution
         :param institution_secret: string
-            The ORCiD secret given to the institution
+            The ORCID secret given to the institution
         :param sandbox: boolean
             Should the sandbox be used. False (default) indicates production
             mode.
@@ -550,7 +550,7 @@ class MemberAPI(PublicAPI):
             Scope used for seaching. The default one allows to search
             everywhere.
         :param pagination: integer
-            How many papers should be fetched with ine request.
+            How many papers should be fetched with the request.
         """
         access_token = self. \
             _get_access_token_from_orcid('/read-public')
