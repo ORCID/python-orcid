@@ -352,7 +352,7 @@ class PublicAPI(SearchAPI):
         if put_code:
             request_url += '/%s' % put_code
         headers = {'Accept': 'application/orcid+json',
-                   'Authorization:': 'Bearer %s' % access_token}
+                   'Authorization': 'Bearer %s' % access_token}
         return requests.get(request_url, headers=headers)
 
 
