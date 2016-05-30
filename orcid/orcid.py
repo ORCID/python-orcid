@@ -613,9 +613,7 @@ class MemberAPI(PublicAPI):
         response.raise_for_status()
         return response.json()['access_token']
 
-    def _get_member_info(self, orcid_id, request_type, token, put_code):
-        access_token = self. \
-            _get_access_token_from_orcid('/activities/read-limited')
+    def _get_member_info(self, orcid_id, request_type, access_token, put_code):
         request_url = '%s/%s/%s' % (self._endpoint_member + VERSION,
                                     orcid_id, request_type)
         if put_code:
