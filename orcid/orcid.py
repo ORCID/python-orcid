@@ -275,6 +275,8 @@ class PublicAPI(SearchAPI):
         :param request_type: string
             One of 'activities', 'education', 'employment', 'funding',
             'peer-review', 'work'.
+        :param token: string
+            Token received from OAuth 2 3-legged authorization.
         :param put_code: string
             The id of the queried work. Must be given if 'request_type' is not
             'activities'.
@@ -468,6 +470,8 @@ class MemberAPI(PublicAPI):
             'peer-review', 'work'.
         :param response_format: string
             One of json, xml.
+        :param token: string
+            Token received from OAuth 2 3-legged authorization.
         :param put_code: string
             The id of the queried work. Must be given if 'request_type' is not
             'activities'.
