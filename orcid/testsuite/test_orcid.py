@@ -102,9 +102,14 @@ def test_get_login_url(publicAPI):
                                    redirect_uri) == expected_url
     assert publicAPI.get_login_url(2 * ["/orcid-profile/read-limited"],
                                    redirect_uri) == expected_url
+    import sys
+    if sys.version_info[0] == 2:
+        family_names = "M\xc3\xb6\xc3\x9fbauer".decode("utf-8")
+    else:
+        family_names = "M\xf6\xdfbauer"
     kwargs = {"state": "F0OCMU37MV3GMUX1",
-              "family_names": "Carberry", "given_names": "Josiah Stinkney",
-              "email": "j.s.carberry@example.com",
+              "family_names": family_names, "given_names": "Rudolf Ludwig",
+              "email": "r.moessbauer@example.com",
               "lang": "en", "show_login": True}
     assert publicAPI.get_login_url(
         ["/orcid-profile/read-limited", "/affiliations/create",
@@ -113,8 +118,8 @@ def test_get_login_url(publicAPI):
         "&scope=%2Faffiliations%2Fcreate+%2Forcid-profile%2Fread-limited+" \
         "%2Forcid-works%2Fcreate&response_type=code&" \
         "redirect_uri=https%3A%2F%2Fwww.inspirehep.net&" \
-        "state=F0OCMU37MV3GMUX1&family_names=Carberry&" \
-        "given_names=Josiah+Stinkney&email=j.s.carberry%40example.com&" \
+        "state=F0OCMU37MV3GMUX1&family_names=M%C3%B6%C3%9Fbauer&" \
+        "given_names=Rudolf+Ludwig&email=moessbauer%40example.com&" \
         "lang=en&show_login=true"
 
 
