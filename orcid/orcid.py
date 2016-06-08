@@ -196,9 +196,9 @@ class PublicAPI(SearchAPI):
         if state:
             data.append(("state", state))
         if family_names:
-            data.append(("family_names", family_names))
+            data.append(("family_names", family_names.encode("utf-8")))
         if given_names:
-            data.append(("given_names", given_names))
+            data.append(("given_names", given_names.encode("utf-8")))
         if email:
             data.append(("email", email))
         if lang:
