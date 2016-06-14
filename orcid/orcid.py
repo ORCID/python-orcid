@@ -275,6 +275,8 @@ class PublicAPI(SearchAPI):
         :param request_type: string
             One of 'activities', 'education', 'employment', 'funding',
             'peer-review', 'work'.
+        :param token: string
+            Token received from OAuth 2 3-legged authorization.
         :param put_code: string
             The id of the queried work. Must be given if 'request_type' is not
             'activities'.
@@ -468,6 +470,8 @@ class MemberAPI(PublicAPI):
             'peer-review', 'work'.
         :param response_format: string
             One of json, xml.
+        :param token: string
+            Token received from OAuth 2 3-legged authorization.
         :param put_code: string
             The id of the queried work. Must be given if 'request_type' is not
             'activities'.
@@ -609,9 +613,7 @@ class MemberAPI(PublicAPI):
         response.raise_for_status()
         return response.json()['access_token']
 
-    def _get_member_info(self, orcid_id, request_type, token, put_code):
-        access_token = self. \
-            _get_access_token_from_orcid('/activities/read-limited')
+    def _get_member_info(self, orcid_id, request_type, access_token, put_code):
         request_url = '%s/%s/%s' % (self._endpoint_member + VERSION,
                                     orcid_id, request_type)
         if put_code:
