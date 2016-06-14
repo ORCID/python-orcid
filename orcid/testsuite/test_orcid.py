@@ -119,7 +119,7 @@ def test_get_login_url(publicAPI):
         "%2Forcid-works%2Fcreate&response_type=code&" \
         "redirect_uri=https%3A%2F%2Fwww.inspirehep.net&" \
         "state=F0OCMU37MV3GMUX1&family_names=M%C3%B6%C3%9Fbauer&" \
-        "given_names=Rudolf+Ludwig&email=moessbauer%40example.com&" \
+        "given_names=Rudolf+Ludwig&email=r.moessbauer%40example.com&" \
         "lang=en&show_login=true"
 
 
