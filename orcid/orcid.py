@@ -123,11 +123,11 @@ class SearchAPI(object):
 class PublicAPI(SearchAPI):
     """Public API."""
 
-    TYPES_WITH_PUTCODES = {'education',
-                           'employment',
-                           'funding',
-                           'peer-review',
-                           'work'}
+    TYPES_WITH_PUTCODES = set(['education',
+                               'employment',
+                               'funding',
+                               'peer-review',
+                               'work'])
 
     def __init__(self, institution_key, institution_secret, sandbox=False):
         """Initialize public API.
