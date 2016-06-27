@@ -15,7 +15,7 @@ else:
 SEARCH_VERSION = "/v1.2"
 VERSION = "/v2.0_rc2"
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 
 class SearchAPI(object):
@@ -122,6 +122,12 @@ class SearchAPI(object):
 
 class PublicAPI(SearchAPI):
     """Public API."""
+
+    TYPES_WITH_PUTCODES = {'education',
+                           'employment',
+                           'funding',
+                           'peer-review',
+                           'work'}
 
     def __init__(self, institution_key, institution_secret, sandbox=False):
         """Initialize public API.
@@ -273,8 +279,9 @@ class PublicAPI(SearchAPI):
         :param orcid_id: string
             Id of the queried author.
         :param request_type: string
-            One of 'activities', 'education', 'employment', 'funding',
-            'peer-review', 'work'.
+            One of 'activities', 'address', 'education', 'email', 'employment',
+            'external-identifiers', 'funding', 'keywords', 'other-names'
+            'peer-review', 'personal-details', 'person', 'work'.
         :param token: string
             Token received from OAuth 2 3-legged authorization.
         :param put_code: string
@@ -338,10 +345,10 @@ class PublicAPI(SearchAPI):
 
     def _get_info(self, orcid_id, function, request_type, token,
                   put_code=None):
-        if request_type != "activities" and not put_code:
+        if request_type in self.TYPES_WITH_PUTCODES and not put_code:
             raise ValueError("""In order to fetch specific record,
                                 please specify the 'put_code' argument.""")
-        elif request_type == "activities" and put_code:
+        elif request_type not in self.TYPES_WITH_PUTCODES and put_code:
             raise ValueError("""In order to fetch activities summary, the 'id'
                                 argument is redundant.""")
         response = function(orcid_id, request_type, token, put_code)

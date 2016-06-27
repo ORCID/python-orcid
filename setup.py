@@ -19,7 +19,7 @@ class PyTest(TestCommand):
 setup(author='Mateusz Susik',
       author_email='mateuszsusik@protonmail.ch',
       classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
@@ -44,5 +44,5 @@ setup(author='Mateusz Susik',
       packages=['orcid'],
       tests_require=['pytest', 'coverage', 'httpretty'],
       url='https://github.com/ORCID/python-orcid',
-      version='0.6.0'
+      version='0.7.0'
       )
