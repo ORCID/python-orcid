@@ -1,6 +1,10 @@
 python-orcid
 ============
 
+.. image:: https://badges.gitter.im/ORCID/python-orcid.svg
+   :alt: Join the chat at https://gitter.im/ORCID/python-orcid
+   :target: https://gitter.im/ORCID/python-orcid?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 .. image:: https://img.shields.io/travis/ORCID/python-orcid.svg?style=flat-square
   :target: https://travis-ci.org/ORCID/python-orcid
 .. image:: https://img.shields.io/coveralls/ORCID/python-orcid.svg?style=flat-square
