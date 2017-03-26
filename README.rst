@@ -80,33 +80,6 @@ from and writing to ORCID records.
 
 There are two types of API available for developers.
 
-SearchAPI
-=========
-
-The search API allows the developers to use the search engine provided
-bo ORCiD. This is the only API that does not require any credentials.
-Please note that currently it uses API 1.2 and will be migrated to 2.0
-in the future. The functionality of this API is available in public
-and member APIs.
-
-Searching
----------
-
-.. code-block:: python
-
-    import orcid
-    api = orcid.SearchAPI(sandbox=True)
-    search_results = api.search_public('text:English')
-
-
-While creating a search query, it is possible to use a generator in
-order to reduce time needed to fetch a record.
-
-.. code-block:: python
-
-    search_results = api.search_public_generator('text:English',
-                                                 pagination=20)
-    first_result = next(search_results)
 
 PublicAPI
 =========
@@ -133,6 +106,39 @@ have an authorization code), this process can be simplified:
     token = api.get_token_from_authorization_code(authorization_code,
                                                   redirect_uri)
 
+A special case are the tokens for performing search queries. Such queries
+do not need user authentication, only institution credentials are needed.
+
+.. code-block:: python
+
+    import orcid
+    api = orcid.PublicAPI(institution_key, institution_secret, sandbox=True)
+    search_token = api.get_search_token_from_orcid()
+
+By reusing the same token, the search functions will run faster skipping
+the authentication process.
+
+
+Searching
+---------
+
+.. code-block:: python
+
+    import orcid
+    api = orcid.PublicAPI(institution_key, institution_secret, sandbox=True)
+    search_results = api.search('text:English', access_token=Token)
+
+
+While creating a search query, it is possible to use a generator in
+order to reduce time needed to fetch a record.
+
+.. code-block:: python
+
+    search_results = api.search_generator('text:English',
+                                          pagination=20)
+    first_result = next(search_results)
+
+
 Reading records
 ---------------
 
@@ -145,6 +151,8 @@ Reading records
     token = api.get_token(user_id, user_password, redirect_uri)
     summary = api.read_record_public('0000-0001-1111-1111', 'activities',
                                      token)
+    summary = api.read_record_public('0000-0001-1111-1111', 'record',
+                                     token)
 
 
 Every record in the `summary` dictionary should contain *put-codes*. Using
@@ -154,10 +162,17 @@ record and the put-code need to be provided.
 .. code-block:: python
 
     # Get the specific record
-    # Available record types are:
-    # 'education', 'employment', 'funding', 'peer-review', 'work'
     work = api.read_record_public('0000-0001-1111-1111', 'work', token,
                                   '1111')
+
+An exception is made for ``works`` `request_type`. It is possible to
+fetch multiple selected works at once by selecting multiple
+``put_codes`` in a list.
+
+.. code-block:: python
+
+    work = api.read_record_public('0000-0001-1111-1111', 'works', token,
+                                  ['1111', '2222', '3333'])
 
 Additional utilities
 --------------------
@@ -187,7 +202,7 @@ institution secret have to be provided.
     import orcid
     api = orcid.MemberAPI(institution_key, institution_secret,
                           sandbox=True)
-    search_results = api.search_member('text:English')
+    search_results = api.search('text:English')
     # Get the summary
     token = api.get_token(user_id, user_password, redirect_uri,
                           '/read-limited')
@@ -212,12 +227,11 @@ Adding/updating/removing records
 
 Using the member API, one can add/update/remove records from the ORCID profile.
 
+All the types of records are supported.
+
 .. code-block:: python
 
-    put_code = api.add_record(author-orcid, token, 'work',
-                              {'title': {'title': 'Title'},
-                               'type': 'ARTISTIC_PERFORMANCE'})
-
+    put_code = api.add_record(author-orcid, token, 'work', json)
     # Change the type to 'other'
     api.update_record(author-orcid, token, 'work', put-code,
                       {'type': 'OTHER'})
@@ -226,253 +240,90 @@ Using the member API, one can add/update/remove records from the ORCID profile.
 
 The ``token`` is the string received from OAuth 3-legged authorization.
 
-``work`` is one of the types of records. Every time a record is modified, the type
-has to be specified. The available types are:
-
-* activities
-* education
-* employment
-* funding
-* peer-review
-* work
-
-The last argument is the record itself. Here are some
-examplary dictionaries that can be passed as an argument:
-
-work
-~~~~
-
-In case of doubts, see `work XML <http://members.orcid.org/api/xml-orcid-works>`_.
-
-A minimal example, only the mandatory fields are filled.
+The last argument is the record itself. The record should
+follow ORCID's JSON records definitions. Here is an
+example of a dictionary that can be passed as an argument:
 
 .. code-block:: python
 
     {
-        'title': {'title': 'API Test Title'},
-        'type': 'JOURNAL_ARTICLE',
-        'external-ids': [{
-            'external-id': [{
-                'external-id-type': 'source-work-id',
-                'external-id-value': '1234'
-            }]
+      "title": {
+        "title": {
+          "value": "Work # 1"
+        },
+        "subtitle": null,
+        "translated-title": null
+      },
+      "journal-title": {
+        "value": "journal # 1"
+      },
+      "short-description": null,
+      "type": "JOURNAL_ARTICLE",
+      "external-ids": {
+        "external-id": [{
+          "external-id-type": "doi",
+          "external-id-value": "ext-id-1",
+          "external-id-url": {
+            "value": "http://dx.doi.org/ext-id-1"
+          },
+          "external-id-relationship": "SELF"
         }]
+      }
     }
 
-An example where all the fields are filled.
+If you do not know how to structure your JSON, visit
+`ORCID swagger <https://api.orcid.org/v2.0>`_
+
+It is possible to update many works in the same time!
+Us ``works`` request type and pass a JSON like this one:
 
 .. code-block:: python
 
-    {
-        'title': {'title': 'API Test Title',
-                  'subtitle': 'My Subtitle',
-                  'translated-title':
-                        {'language-code': 'pl',
-                         'value': u'API Tytuł testowy'}
-                 },
-        'journal-title': 'Journal Title',
-        'short-description': 'My abstract',
-        'citation': {
-            'citation': '''@article {ORCIDtest2014,
-                           author = "Lastname, Firstname",
-                           title = "API Test Title",
-                           journal = "Journal Title",
-                           volume = "25",
-                           number = "4",
-                           year = "2010",
-                           pages = "259-264",
-                           doi = "doi:10.1087/20120404"
-                         }''',
-            # Available types:
-            # 'FORMATTED-UNSPECIFIED'
-            # 'BIBTEX'
-            # 'FORMATTED_APA'
-            # 'FORMATTED_HARVARD'
-            # 'FORMATTED_IEEE'
-            # 'FORMATTED_MLA'
-            # 'FORMATTED_VANCOUVER'
-            # 'FORMATTED_CHICAGO'
-            'citation-type': 'BIBTEX'
+  "bulk": [
+  {
+    "work": {
+      "title": {
+        "title": {
+          "value": "Work # 1"
         },
-        # See http://members.orcid.org/api/supported-work-types
-        'type': 'JOURNAL_ARTICLE',
-        'publication-date': {'year': '2010',
-                             'month': '11',
-                             'day': '10'
-        },
-        # See http://members.orcid.org/api/supported-work-identifiers
-        'external-ids': { 'external-id':[{
-            'external-id-type': 'source-work-id',
-            'external-id-value': '1234',
-            'external-id-url': 'www.example.com/12344'
-        }]},
-        'url': 'https://github.com/MSusik/python-orcid',
-        'contributors': {'contributor': [{
-            'credit-name': 'LastName, FirstName',
-            'contributor-orcid': '0000-0001-5109-3700',
-            'contributor-email': 'somebody@mailinator.com',
-            'contributor-attributes': {
-                # Supported roles:
-                # 'AUTHOR'
-                # 'ASSIGNEE'
-                # 'EDITOR'
-                # 'CHAIR_OR_TRANSLATOR'
-                # 'CO_INVESTIGATOR'
-                # 'CO_INVENTOR'
-                # 'GRADUATE_STUDENT'
-                # 'OTHER_INVENTOR'
-                # 'PRINCIPAL_INVESTIGATOR'
-                # 'POSTDOCTORAL_RESEARCHER'
-                # 'SUPPORT_STAFF'
-                'contributor-role': 'SUPPORT_STAFF',
-                # One of 'ADDITIONAL', 'FIRST'
-                'contributor-sequence': 'ADDITIONAL'
-            }
-        }]},
-        # ISO-629-1: http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
-        'language-code': 'en',
-        'country': {'value': 'US', 'visibility': 'PUBLIC'}
+      },
+      "journal-title": {
+        "value": "journal # 1"
+      },
+      "type": "JOURNAL_ARTICLE",
+      "external-ids": {
+        "external-id": [{
+          "external-id-type": "doi",
+          "external-id-value": "ext-id-1",
+          "external-id-url": {
+            "value": "http://dx.doi.org/ext-id-1"
+          },
+          "external-id-relationship": "SELF"
+        }]
+      }
     }
-
-
-education or employment
-~~~~~~~~~~~~~~~~~~~~~~~
-
-In case of doubts, see `affiliation XML <http://members.orcid.org/api/xml-affiliations>`_.
-
-A minimal example using only the required fields.
-
-.. code-block:: python
-
-    {
-        'organization': {
-            'name': 'My college',
-            'address': {
-                'city': 'Some city',
-                'country': 'US'
-            }
-        }
+  },
+  {
+    "work": {
+      "title": {
+        "title": {
+          "value": "Work # 2"
+        },
+      },
+      "journal-title": {
+        "value": "journal # 2"
+      },
+      "type": "JOURNAL_ARTICLE",
+      "external-ids": {
+        "external-id": [{
+          "external-id-type": "doi",
+          "external-id-value": "ext-id-2",
+          "external-id-url": {
+            "value": "http://dx.doi.org/ext-id-2"
+          },
+          "external-id-relationship": "SELF"
+        }]
+      }
     }
-
-An example with all the fields used.
-
-.. code-block:: python
-
-    {
-        'department-name': 'Department',
-        'role-title': 'Researcher (Academic)',
-        'start-date': {'year': 2012,
-                       'month': 4,
-                       'day': 10
-        },
-        'end-date': {'year': 2013,
-                     'month': 4,
-                     'day': 10
-        },
-        'organization': {
-            'address': {
-                'city': 'Some City',
-                'region': 'NY',
-                'country': 'US'
-            },
-            'disambiguated-organization': {
-                'disambiguated-organization-identifier': 'XXXXXX',
-                # Only RINGGOLD is available so far.
-                'disambiguation-source': 'RINGGOLD'
-            },
-            'name': 'My college'
-        }
-    }
-
-
-
-funding
-~~~~~~~
-
-In case of doubts, see `funding XML <http://members.orcid.org/api/xml-funding>`_.
-
-A minimal example using only the required fields.
-
-.. code-block:: python
-
-    {
-        # One of 'AWARD', 'CONTRACT', 'GRANT', 'SALARY_AWARD'
-        'type': 'AWARD',
-        'title': {
-            'title': 'Title of the Funding',
-        },
-        'organization': {
-            'address': {
-                'city': 'London',
-                'country': 'GB'
-            },
-            'name': 'Funding Agency Name'
-        },
-        'external-ids': {'external-id': [{
-           'external-id-type': 'grant_number',
-           'external-id-value': '1234',
-           'external-id-url': 'www.funding.com/1234'
-        }]},
-    }
-
-An example with all the fields used.
-
-.. code-block:: python
-
-    {
-        'type': 'AWARD',
-        'title': {
-            'title': 'Title of the Funding',
-            'translated-title': {
-                'value': u'Tytuł Finansowania',
-                'language-code': 'pl'
-            }
-        },
-        'short-description': 'Description of the funding',
-        'amount': {'currency-code': 'USD',
-                   'value': 1000},
-        'url': 'www.orcid.org',
-        'start-date': {'year': 2013,
-                       'month': 1,
-                       'day': 10
-                       },
-        'end-date': {'year': 2014,
-                     'month': 1,
-                     'day': 10
-                     },
-        'external-ids': {'external-id': [{
-           'external-id-type': 'grant_number',
-           'external-id-value': '1234',
-           'external-id-url': 'www.funding.com/1234'
-         }]},
-        'contributors': {'contributor': [{
-            'contributor-orcid': '0000-0003-4494-0734',
-            'credit-name': {
-                'value': 'Smith, John.',
-                'visibility': 'PUBLIC'
-            },
-            'contributor-email': 'john@mailinator.com',
-            'contributor-attributes': {
-                # One of 'LEAD', 'CO_LEAD', 'SUPPORTED_BY', 'OTHER_CONTRIBUTION'
-                'contributor-role': 'LEAD',
-            }
-        }]},
-        'organization': {
-            'address': {
-                'city': 'London',
-                'region': 'London',
-                'country': 'GB'
-            },
-            'disambiguated-organization': {
-                'disambiguated-organization-identifier': 'XXXXXX',
-                # Only FUNDREF is available so far.
-                'disambiguation-source': 'FUNDREF'
-            },
-            'name': 'Funding Agency Name'
-        }
-    }
-
-peer-review
-~~~~~~~~~~~
-
-TBA
+  }
+  ]
