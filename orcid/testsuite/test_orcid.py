@@ -98,18 +98,18 @@ def test_read_record_public(publicAPI):
 def test_search_public(publicAPI):
     """Test search_public."""
 
-    results = publicAPI.search_public('text:%s' % WORK_NAME)
+    results = publicAPI.search('text:%s' % WORK_NAME)
     assert results['orcid-search-results']['orcid-search-result'][0][
                    'orcid-profile']['orcid-identifier'][
                    'path'] == USER_ORCID
 
-    results = publicAPI.search_public('family-name:Sanchez', start=2, rows=6)
+    results = publicAPI.search('family-name:Sanchez', start=2, rows=6)
     # Just check if the request suceeded
 
     assert results['error-desc'] is None
 
 
-def test_search_public_generator(searchAPI):
+def test_search_public_generator(publicAPI):
     """Test search public with a generator."""
 
     results = searchAPI.search('text:%s' % WORK_NAME)
@@ -125,7 +125,7 @@ def test_search_public_generator(searchAPI):
     assert result['relevancy-score']['value'] > 0
 
 
-def test_search_public_generator_no_results(searchAPI):
+def test_search_public_generator_no_results(publicAPI):
     generator = searchAPI.search_generator('family-name:' +
                                            str(uuid4()))
 
@@ -133,7 +133,7 @@ def test_search_public_generator_no_results(searchAPI):
         next(generator)
 
 
-def test_search_public_generator_pagination(searchAPI):
+def test_search_public_generator_pagination(publicAPI):
     generator = searchAPI.search_generator('family-name:Sanchez',
                                            pagination=1)
     result = next(generator)
@@ -152,7 +152,7 @@ def memberAPI():
 
 def test_apis_common_functionalities(memberAPI):
     """Check if the member API has functionalities of the other apis."""
-    assert hasattr(getattr(memberAPI, 'search_public'), '__call__')
+    assert hasattr(getattr(memberAPI, 'search'), '__call__')
     assert hasattr(getattr(memberAPI, 'get_token'), '__call__')
 
 

@@ -18,7 +18,7 @@ VERSION = "/v2.0"
 __version__ = "1.0.0"
 
 
-class PublicAPI():
+class PublicAPI(object):
     """Public API."""
 
     TYPES_WITH_PUTCODES = set(['address',
