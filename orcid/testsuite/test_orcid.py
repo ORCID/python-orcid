@@ -112,12 +112,12 @@ def test_search_public(publicAPI):
 def test_search_public_generator(publicAPI):
     """Test search public with a generator."""
 
-    results = searchAPI.search('text:%s' % WORK_NAME)
+    results = publicAPI.search('text:%s' % WORK_NAME)
     assert results['orcid-search-results']['orcid-search-result'][0][
                    'orcid-profile']['orcid-identifier'][
                    'path'] == USER_ORCID
 
-    generator = searchAPI.search_generator('family-name:Sanchez')
+    generator = publicAPI.search_generator('family-name:Sanchez')
     result = next(generator)
     result = next(generator)
     # Just check if the request suceeded
@@ -126,7 +126,7 @@ def test_search_public_generator(publicAPI):
 
 
 def test_search_public_generator_no_results(publicAPI):
-    generator = searchAPI.search_generator('family-name:' +
+    generator = publicAPI.search_generator('family-name:' +
                                            str(uuid4()))
 
     with pytest.raises(StopIteration):
@@ -134,7 +134,7 @@ def test_search_public_generator_no_results(publicAPI):
 
 
 def test_search_public_generator_pagination(publicAPI):
-    generator = searchAPI.search_generator('family-name:Sanchez',
+    generator = publicAPI.search_generator('family-name:Sanchez',
                                            pagination=1)
     result = next(generator)
     result = next(generator)
@@ -158,7 +158,7 @@ def test_apis_common_functionalities(memberAPI):
 
 def test_search_member(memberAPI):
     """Test search_member."""
-    results = memberAPI.search_member('text:%s' % WORK_NAME)
+    results = memberAPI.search('text:%s' % WORK_NAME)
     assert results['orcid-search-results']['orcid-search-result'][0][
                    'orcid-profile']['orcid-identifier'][
                    'path'] == USER_ORCID
@@ -166,7 +166,7 @@ def test_search_member(memberAPI):
 
 def test_search_member_generator(memberAPI):
     """Test search_member with generator."""
-    generator = memberAPI.search_member_generator('text:%s' % WORK_NAME)
+    generator = memberAPI.search_generator('text:%s' % WORK_NAME)
     results = next(generator)
     assert results['orcid-profile']['orcid-identifier'][
                    'path'] == USER_ORCID
