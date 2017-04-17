@@ -31,6 +31,8 @@ setup(author='Mateusz Susik',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Internet',
         'Topic :: Utilities'
       ],
@@ -44,5 +46,5 @@ setup(author='Mateusz Susik',
       packages=['orcid'],
       tests_require=['pytest', 'coverage', 'httpretty'],
       url='https://github.com/ORCID/python-orcid',
-      version='0.7.0'
+      version='1.0.0'
       )

@@ -7,7 +7,6 @@ from uuid import uuid4
 
 from orcid import MemberAPI
 from orcid import PublicAPI
-from orcid import SearchAPI
 
 from .helpers import exemplary_work
 from .helpers import WORK_NAME2
