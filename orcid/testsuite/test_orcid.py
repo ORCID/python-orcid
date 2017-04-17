@@ -99,9 +99,7 @@ def test_search_public(publicAPI):
     """Test search_public."""
 
     results = publicAPI.search('text:%s' % WORK_NAME)
-    assert results['orcid-search-results']['orcid-search-result'][0][
-                   'orcid-profile']['orcid-identifier'][
-                   'path'] == USER_ORCID
+    assert results['result'][0]['orcid-identifier']['path'] == USER_ORCID
 
     results = publicAPI.search('family-name:Sanchez', start=2, rows=6)
     # Just check if the request suceeded
@@ -113,9 +111,7 @@ def test_search_public_generator(publicAPI):
     """Test search public with a generator."""
 
     results = publicAPI.search('text:%s' % WORK_NAME)
-    assert results['orcid-search-results']['orcid-search-result'][0][
-                   'orcid-profile']['orcid-identifier'][
-                   'path'] == USER_ORCID
+    assert results['result'][0]['orcid-identifier']['path'] == USER_ORCID
 
     generator = publicAPI.search_generator('family-name:Sanchez')
     result = next(generator)
@@ -159,17 +155,14 @@ def test_apis_common_functionalities(memberAPI):
 def test_search_member(memberAPI):
     """Test search_member."""
     results = memberAPI.search('text:%s' % WORK_NAME)
-    assert results['orcid-search-results']['orcid-search-result'][0][
-                   'orcid-profile']['orcid-identifier'][
-                   'path'] == USER_ORCID
+    assert results['result'][0]['orcid-identifier']['path'] == USER_ORCID
 
 
 def test_search_member_generator(memberAPI):
     """Test search_member with generator."""
     generator = memberAPI.search_generator('text:%s' % WORK_NAME)
     results = next(generator)
-    assert results['orcid-profile']['orcid-identifier'][
-                   'path'] == USER_ORCID
+    assert results['result'][0]['orcid-identifier']['path'] == USER_ORCID
 
 
 def test_read_record_member(memberAPI):
