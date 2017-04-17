@@ -119,7 +119,8 @@ class PublicAPI():
             data.append(("show_login", "true" if show_login else "false"))
         return self._login_or_register_endpoint + "?" + urlencode(data)
 
-    def search(self, query, method="lucene", start=None, rows=None, access_token=None):
+    def search(self, query, method="lucene", start=None,
+               rows=None, access_token=None):
         """Search the ORCID database.
 
         Parameters
@@ -155,9 +156,8 @@ class PublicAPI():
         return self._search(query, method, start, rows, headers,
                             self._endpoint)
 
-
     def search_generator(self, query, method="lucene",
-                                pagination=10, access_token=None):
+                         pagination=10, access_token=None):
         """Search the ORCID database with a generator.
 
         The generator will yield every result.
@@ -205,6 +205,18 @@ class PublicAPI():
             index += pagination
 
     def get_search_token_from_orcid(self, scope='/read-public'):
+        """Get a token for searching ORCID records.
+
+        Parameters
+        ----------
+        :param scope: string
+            /read-public or /read-member
+
+        Returns
+        -------
+        :returns: string
+            The token.
+        """
         payload = {'client_id': self._key,
                    'client_secret': self._secret,
                    'scope': scope,
@@ -379,9 +391,9 @@ class PublicAPI():
         return requests.get(request_url, headers=headers)
 
     def _search(self, query, method, start, rows, headers,
-            endpoint):
-
-        url = endpoint + SEARCH_VERSION + "/search/?defType=" + method + "&q=" + query
+                endpoint):
+        url = endpoint + SEARCH_VERSION + \
+                "/search/?defType=" + method + "&q=" + query
         if start:
             url += "&start=%s" % start
         if rows:
@@ -408,7 +420,6 @@ class MemberAPI(PublicAPI):
             Should the sandbox be used. False (default) indicates production
             mode.
         """
-
         PublicAPI.__init__(self, institution_key, institution_secret, sandbox)
 
         if sandbox:
@@ -580,7 +591,7 @@ class MemberAPI(PublicAPI):
                             self._endpoint)
 
     def search_generator(self, query, method="lucene", pagination=10,
-                                access_token=None):
+                         access_token=None):
         """Search the ORCID database with a generator.
 
         The generator will yield every result.

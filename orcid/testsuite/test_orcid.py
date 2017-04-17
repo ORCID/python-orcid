@@ -28,60 +28,6 @@ def fullmatch(regex, string, flags=0):
 
 
 @pytest.fixture
-def searchAPI():
-    """Get SearchAPI handler."""
-    return SearchAPI(sandbox=True)
-
-
-def test_search_public(searchAPI):
-    """Test search_public."""
-
-    results = searchAPI.search_public('text:%s' % WORK_NAME)
-    assert results['orcid-search-results']['orcid-search-result'][0][
-                   'orcid-profile']['orcid-identifier'][
-                   'path'] == USER_ORCID
-
-    results = searchAPI.search_public('family-name:Sanchez', start=2, rows=6)
-    # Just check if the request suceeded
-
-    assert results['error-desc'] is None
-
-
-def test_search_public_generator(searchAPI):
-    """Test search public with a generator."""
-
-    results = searchAPI.search_public('text:%s' % WORK_NAME)
-    assert results['orcid-search-results']['orcid-search-result'][0][
-                   'orcid-profile']['orcid-identifier'][
-                   'path'] == USER_ORCID
-
-    generator = searchAPI.search_public_generator('family-name:Sanchez')
-    result = next(generator)
-    result = next(generator)
-    # Just check if the request suceeded
-
-    assert result['relevancy-score']['value'] > 0
-
-
-def test_search_public_generator_no_results(searchAPI):
-    generator = searchAPI.search_public_generator('family-name:' +
-                                                  str(uuid4()))
-
-    with pytest.raises(StopIteration):
-        next(generator)
-
-
-def test_search_public_generator_pagination(searchAPI):
-    generator = searchAPI.search_public_generator('family-name:Sanchez',
-                                                  pagination=1)
-    result = next(generator)
-    result = next(generator)
-    # Just check if the request suceeded
-
-    assert result['relevancy-score']['value'] > 0
-
-
-@pytest.fixture
 def publicAPI():
     """Get PublicAPI handler."""
     return PublicAPI(sandbox=True,
@@ -148,6 +94,54 @@ def test_read_record_public(publicAPI):
     with pytest.raises(ValueError) as excinfo:
         publicAPI.read_record_public(USER_ORCID, 'work', token)
     assert "please specify the 'put_code' argument" in str(excinfo.value)
+
+
+def test_search_public(publicAPI):
+    """Test search_public."""
+
+    results = publicAPI.search_public('text:%s' % WORK_NAME)
+    assert results['orcid-search-results']['orcid-search-result'][0][
+                   'orcid-profile']['orcid-identifier'][
+                   'path'] == USER_ORCID
+
+    results = publicAPI.search_public('family-name:Sanchez', start=2, rows=6)
+    # Just check if the request suceeded
+
+    assert results['error-desc'] is None
+
+
+def test_search_public_generator(searchAPI):
+    """Test search public with a generator."""
+
+    results = searchAPI.search('text:%s' % WORK_NAME)
+    assert results['orcid-search-results']['orcid-search-result'][0][
+                   'orcid-profile']['orcid-identifier'][
+                   'path'] == USER_ORCID
+
+    generator = searchAPI.search_generator('family-name:Sanchez')
+    result = next(generator)
+    result = next(generator)
+    # Just check if the request suceeded
+
+    assert result['relevancy-score']['value'] > 0
+
+
+def test_search_public_generator_no_results(searchAPI):
+    generator = searchAPI.search_generator('family-name:' +
+                                           str(uuid4()))
+
+    with pytest.raises(StopIteration):
+        next(generator)
+
+
+def test_search_public_generator_pagination(searchAPI):
+    generator = searchAPI.search_generator('family-name:Sanchez',
+                                           pagination=1)
+    result = next(generator)
+    result = next(generator)
+    # Just check if the request suceeded
+
+    assert result['relevancy-score']['value'] > 0
 
 
 @pytest.fixture
