@@ -119,7 +119,7 @@ def test_search_public_generator(publicAPI):
     result = next(generator)
     # Just check if the request suceeded
 
-    assert result['relevancy-score']['value'] > 0
+    assert 'orcid-identifier' in result
 
 
 def test_search_public_generator_no_results(publicAPI):
@@ -137,7 +137,7 @@ def test_search_public_generator_pagination(publicAPI):
     result = next(generator)
     # Just check if the request suceeded
 
-    assert result['relevancy-score']['value'] > 0
+    assert 'orcid-identifier' in result
 
 
 @pytest.fixture
@@ -163,7 +163,7 @@ def test_search_member_generator(memberAPI):
     """Test search_member with generator."""
     generator = memberAPI.search_generator('text:%s' % WORK_NAME)
     results = next(generator)
-    assert results['result'][0]['orcid-identifier']['path'] == USER_ORCID
+    assert results['orcid-identifier']['path'] == USER_ORCID
 
 
 def test_read_record_member(memberAPI):
