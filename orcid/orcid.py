@@ -30,7 +30,7 @@ class PublicAPI(object):
                                'keywords',
                                'other-names',
                                'peer-review',
-                               'researcher-urls'
+                               'researcher-urls',
                                'work'])
 
     TYPES_WITH_MULTIPLE_PUTCODES = set(['works'])
@@ -142,9 +142,8 @@ class PublicAPI(object):
         -------
         :returns: dict
             Search result with error description available. The results can
-            be obtained by accessing keys 'orcid-search-results' and
-            then 'orcid-search-result'. To get the number of all results,
-            access the key 'orcid-search-results' and then 'num-found'.
+            be obtained by accessing key 'result'. To get the number
+            of all results, access the key 'num-found'.
         """
         if access_token is None:
             access_token = self. \
@@ -195,12 +194,10 @@ class PublicAPI(object):
         while True:
             paginated_result = self._search(query, method, index, pagination,
                                             headers, self._endpoint)
-            if not paginated_result['orcid-search-results'][
-                                    'orcid-search-result']:
+            if not paginated_result['result']:
                 return
 
-            for result in paginated_result['orcid-search-results'][
-                                           'orcid-search-result']:
+            for result in paginated_result['result']:
                 yield result
             index += pagination
 
@@ -576,9 +573,8 @@ class MemberAPI(PublicAPI):
         -------
         :returns: dict
             Search result with error description available. The results can
-            be obtained by accessing keys 'orcid-search-results' and
-            then 'orcid-search-result'. To get the number of all results,
-            access the key 'orcid-search-results' and then 'num-found'.
+            be obtained by accessing key 'result'.
+            To get the number of all results, access the key 'num-found'.
         """
         if access_token is None:
             access_token = self. \
@@ -624,12 +620,10 @@ class MemberAPI(PublicAPI):
         while True:
             paginated_result = self._search(query, method, index, pagination,
                                             headers, self._endpoint)
-            if not paginated_result['orcid-search-results'][
-                                    'orcid-search-result']:
+            if not paginated_result['result']:
                 return
 
-            for result in paginated_result['orcid-search-results'][
-                                           'orcid-search-result']:
+            for result in paginated_result['result']:
                 yield result
             index += pagination
 
