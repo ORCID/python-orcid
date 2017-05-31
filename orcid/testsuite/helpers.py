@@ -25,4 +25,3 @@ exemplary_work = {
         }]
       }
     }
-

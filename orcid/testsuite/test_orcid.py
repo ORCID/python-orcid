@@ -210,15 +210,9 @@ def test_work_simple(memberAPI):
     put_code = added_works[0]['work-summary'][0]['put-code']
 
     # Update
-    memberAPI.update_record(USER_ORCID, token, 'work', {
-        'type': 'OTHER',
-        'title': {'title': WORK_NAME2},
-        'external-ids': {'external-id': [{
-            'external-id-type': 'source-work-id',
-            'external-id-value': '1234333',
-            'external-id-url': 'www.example.com/12344333'
-        }]}},
-        put_code)
+    work['type'] = 'OTHER'
+
+    memberAPI.update_record(USER_ORCID, token, 'work', work, put_code)
 
     added_works = get_added_works(token)
     assert len(added_works) == 1
