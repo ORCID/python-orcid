@@ -330,7 +330,7 @@ class PublicAPI(object):
 
         response.raise_for_status()
 
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(response.content, 'html5lib')
         csrf = soup.find(attrs={'name': '_csrf'}).attrs['content']
         headers = {
             'Host': self._host,
