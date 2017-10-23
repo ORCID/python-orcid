@@ -7,7 +7,7 @@ python:
 - '3.5'
 - '3.6'
 install:
-- pip install pep257 pytest pep8 coverage coveralls html5lib beautifulsoup4
+- pip install pep257 pytest pep8 coverage coveralls html5lib beautifulsoup4 lxml
 script:
 - pep257 orcid
 - pep8 orcid
