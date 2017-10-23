@@ -266,11 +266,12 @@ def test_work_simple_xml(memberAPI):
     def get_added_works(token):
         activities = memberAPI.read_record_member(USER_ORCID,
                                                   'activities',
-                                                  token)
-        return list(filter(lambda x: x['work-summary'][
-                                       0]['title']['title'][
-                                       'value'] == WORK_NAME3,
-                           activities['works']['group']))
+                                                  token,
+                                                  accept_type='application/orcid+xml')
+        xpath = "/activities:activities-summary/activities:works/" \
+                "activities:group/work:work-summary/work:title/" \
+                "common:title[text() = '%s']/../.." % WORK_NAME3
+        return activities.xpath(xpath, namespaces=activities.nsmap)
 
     # Add
     work = exemplary_work_xml
@@ -278,17 +279,23 @@ def test_work_simple_xml(memberAPI):
                                 USER_PASSWORD,
                                 REDIRECT_URL)
 
-    memberAPI.add_record(USER_ORCID, token, 'work', work, content_type='application/orcid+xml')
+    memberAPI.add_record(USER_ORCID, token, 'work', work,
+                         content_type='application/orcid+xml')
 
     added_works = get_added_works(token)
     assert len(added_works) == 1
-    assert added_works[0]['work-summary'][0]['type'] == u'JOURNAL_ARTICLE'
-    put_code = added_works[0]['work-summary'][0]['put-code']
+
+    added_work = added_works[0]
+    added_work_title = added_work.xpath("work:type",
+                                        namespaces=added_work.nsmap)[0].text
+    assert added_work_title == u'journal-article'
+    put_code = added_work.attrib['put-code']
 
     # Update
-    work.xpath("//*[local-name()='type']")[0].text = 'other'
+    work.xpath("work:type", namespaces=added_work.nsmap)[0].text = 'other'
 
-    memberAPI.update_record(USER_ORCID, token, 'work', work, put_code, content_type='application/orcid+xml')
+    memberAPI.update_record(USER_ORCID, token, 'work', work, put_code,
+                            content_type='application/orcid+xml')
 
     added_works = get_added_works(token)
     assert len(added_works) == 1
