@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import requests
 import simplejson as json
 import sys
+from lxml import etree
 if sys.version_info[0] == 2:
     from urllib import urlencode
     string_types = basestring,
@@ -285,7 +286,8 @@ class PublicAPI(object):
         response.raise_for_status()
         return json.loads(response.text)
 
-    def read_record_public(self, orcid_id, request_type, token, put_code=None):
+    def read_record_public(self, orcid_id, request_type, token, put_code=None,
+                           accept_type='application/orcid+json'):
         """Get the public info about the researcher.
 
         Parameters
@@ -301,14 +303,16 @@ class PublicAPI(object):
         :param put_code: string | list of strings
             The id of the queried work. In case of 'works' request_type
             might be a list of strings
+        :param accept_type: expected MIME type of received data
 
         Returns
         -------
-        :returns: dict
-            Records.
+        :returns: dict | lxml.etree._Element
+            Record(s) in JSON-compatible dictionary representation or
+            in XML E-tree, depending on accept_type specified.
         """
         return self._get_info(orcid_id, self._get_public_info, request_type,
-                              token, put_code)
+                              token, put_code, accept_type)
 
     def _authenticate(self, user_id, password, redirect_uri, scope):
 
@@ -358,7 +362,7 @@ class PublicAPI(object):
                                                       redirect_uri)
 
     def _get_info(self, orcid_id, function, request_type, token,
-                  put_code=None):
+                  put_code=None, accept_type='application/orcid+json'):
         if request_type in self.TYPES_WITH_PUTCODES and not put_code:
             raise ValueError("""In order to fetch specific record,
                                 please specify the 'put_code' argument.""")
@@ -371,11 +375,12 @@ class PublicAPI(object):
                 and put_code is not None and not isinstance(put_code, list):
             raise ValueError("""In order to fetch multiple records,
                                the 'put_code' should be a list.""")
-        response = function(orcid_id, request_type, token, put_code)
+        response = function(orcid_id, request_type, token, put_code, accept_type)
         response.raise_for_status()
-        return response.json()
+        return self._deserialize_by_content_type(response.content, accept_type)
 
-    def _get_public_info(self, orcid_id, request_type, access_token, put_code):
+    def _get_public_info(self, orcid_id, request_type, access_token, put_code,
+                         accept_type):
         request_url = '%s/%s/%s' % (self._endpoint + VERSION,
                                     orcid_id, request_type)
         if put_code:
@@ -383,7 +388,7 @@ class PublicAPI(object):
                 request_url += '/%s' % ','.join(put_code)
             else:
                 request_url += '/%s' % put_code
-        headers = {'Accept': 'application/orcid+json',
+        headers = {'Accept': accept_type,
                    'Authorization': 'Bearer %s' % access_token}
         return requests.get(request_url, headers=headers)
 
@@ -399,6 +404,13 @@ class PublicAPI(object):
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         return response.json()
+
+    def _deserialize_by_content_type(self, data, content_type):
+        if content_type == 'application/orcid+json':
+            return json.loads(data)
+        if content_type == 'application/orcid+xml':
+            return etree.XML(data)
+        raise NotImplementedError('No deserializer for content of type %s' % content_type)
 
 
 class MemberAPI(PublicAPI):
@@ -430,7 +442,8 @@ class MemberAPI(PublicAPI):
             self._authorize_url = \
                 'https://orcid.org/oauth/custom/authorize.json'
 
-    def add_record(self, orcid_id, token, request_type, data):
+    def add_record(self, orcid_id, token, request_type, data,
+                      content_type='application/orcid+json'):
         """Add a record to a profile.
 
         Parameters
@@ -442,9 +455,12 @@ class MemberAPI(PublicAPI):
         :param request_type: string
             One of 'activities', 'education', 'employment', 'funding',
             'peer-review', 'work'.
-        :param data: dict
-            The record in Python-friendly format. Required if xml is not
-            provided.
+        :param data: dict | lxml.etree._Element
+            The record in Python-friendly format, as either JSON-compatible
+            dictionary (content_type == 'application/orcid+json') or
+            XML (content_type == 'application/orcid+xml')
+        :param content_type: string
+            MIME type of the passed record.
 
         Returns
         -------
@@ -452,7 +468,7 @@ class MemberAPI(PublicAPI):
             Put-code of the new work.
         """
         return self._update_activities(orcid_id, token, requests.post,
-                                       request_type, data)
+                                       request_type, data, content_type=content_type)
 
     def get_token(self, user_id, password, redirect_uri,
                   scope='/activities/update'):
@@ -501,7 +517,8 @@ class MemberAPI(PublicAPI):
 
         return response['orcid']
 
-    def read_record_member(self, orcid_id, request_type, token, put_code=None):
+    def read_record_member(self, orcid_id, request_type, token, put_code=None,
+                           accept_type='application/orcid+json'):
         """Get the member info about the researcher.
 
         Parameters
@@ -519,14 +536,16 @@ class MemberAPI(PublicAPI):
         :param put_code: string | list of strings
             The id of the queried work. In case of 'works' request_type
             might be a list of strings
+        :param accept_type: expected MIME type of received data
 
         Returns
         -------
-        :returns: dictionary
-            Records.
+        :returns: dict | lxml.etree._Element
+            Record(s) in JSON-compatible dictionary representation or
+            in XML E-tree, depending on accept_type specified.
         """
         return self._get_info(orcid_id, self._get_member_info, request_type,
-                              token, put_code)
+                              token, put_code, accept_type)
 
     def remove_record(self, orcid_id, token, request_type, put_code):
         """Add a record to a profile.
@@ -627,7 +646,8 @@ class MemberAPI(PublicAPI):
                 yield result
             index += pagination
 
-    def update_record(self, orcid_id, token, request_type, data, put_code):
+    def update_record(self, orcid_id, token, request_type, data, put_code,
+                      content_type='application/orcid+json'):
         """Add a record to a profile.
 
         Parameters
@@ -639,17 +659,21 @@ class MemberAPI(PublicAPI):
         :param request_type: string
             One of 'activities', 'education', 'employment', 'funding',
             'peer-review', 'work'.
-        :param data: dict
-            The record in Python-friendly format. Required if xml is not
-            provided.
-         :param put_code: string
+        :param data: dict | lxml.etree._Element
+            The record in Python-friendly format, as either JSON-compatible
+            dictionary (content_type == 'application/orcid+json') or
+            XML (content_type == 'application/orcid+xml')
+        :param put_code: string
             The id of the record. Can be retrieved using read_record_* method.
             In the result of it, it will be called 'put-code'.
+        :param content_type: string
+            MIME type of the data being sent.
         """
         self._update_activities(orcid_id, token, requests.put, request_type,
-                                data, put_code)
+                                data, put_code, content_type)
 
-    def _get_member_info(self, orcid_id, request_type, access_token, put_code):
+    def _get_member_info(self, orcid_id, request_type, access_token, put_code,
+                         accept_type):
         request_url = '%s/%s/%s' % (self._endpoint + VERSION,
                                     orcid_id, request_type)
         if put_code:
@@ -657,28 +681,28 @@ class MemberAPI(PublicAPI):
                 request_url += '/%s' % ','.join(put_code)
             else:
                 request_url += '/%s' % put_code
-        headers = {'Accept': 'application/orcid+json',
+        headers = {'Accept': accept_type,
                    'Authorization': 'Bearer %s' % access_token}
         return requests.get(request_url, headers=headers)
 
     def _update_activities(self, orcid_id, token, method, request_type,
-                           data=None, put_code=None):
+                           data=None, put_code=None, content_type='application/orcid+json'):
         url = "%s/%s/%s" % (self._endpoint + VERSION, orcid_id,
                             request_type)
 
         if put_code:
             url += ('/%s' % put_code)
-            if data:
-                data['put-code'] = put_code
+            if data is not None:
+                self._add_put_code_by_content_type(content_type, data, put_code)
 
         headers = {'Accept': 'application/orcid+json',
-                   'Content-Type': 'application/orcid+json',
+                   'Content-Type': content_type,
                    'Authorization': 'Bearer ' + token}
 
         if method == requests.delete:
             response = method(url, headers=headers)
         else:
-            xml = json.dumps(data)
+            xml = self._serialize_by_content_type(data, content_type)
             response = method(url, xml, headers=headers)
 
         response.raise_for_status()
@@ -686,3 +710,18 @@ class MemberAPI(PublicAPI):
         if 'location' in response.headers:
             # Return the new put-code
             return response.headers['location'].split('/')[-1]
+
+    def _add_put_code_by_content_type(self, content_type, data, put_code):
+        if content_type == 'application/orcid+json':
+            data['put-code'] = put_code
+        elif content_type == 'application/orcid+xml':
+            data.attrib['put-code'] = '%s' % put_code
+        else:
+            raise NotImplementedError('Cannot add to content of type %s' % content_type)
+
+    def _serialize_by_content_type(self, data, content_type):
+        if content_type == 'application/orcid+json':
+            return json.dumps(data)
+        if content_type == 'application/orcid+xml':
+            return etree.tostring(data)
+        raise NotImplementedError('No serializer for content of type %s' % content_type)

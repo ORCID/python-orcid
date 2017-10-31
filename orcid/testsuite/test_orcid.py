@@ -9,8 +9,8 @@ from orcid import MemberAPI
 from orcid import PublicAPI
 from requests.exceptions import HTTPError
 
-from .helpers import exemplary_work
-from .helpers import WORK_NAME2
+from .helpers import exemplary_work, exemplary_work_xml
+from .helpers import WORK_NAME2, WORK_NAME3
 
 CLIENT_KEY = os.environ['CLIENT_KEY']
 CLIENT_SECRET = os.environ['CLIENT_SECRET']
@@ -184,6 +184,42 @@ def test_read_record_member(memberAPI):
     assert work['type'] == u'JOURNAL_ARTICLE'
 
 
+def test_read_record_member_xml(memberAPI):
+    """Test reading records from XML."""
+    token = memberAPI.get_token(USER_EMAIL,
+                                USER_PASSWORD,
+                                REDIRECT_URL,
+                                '/read-limited')
+    activities = memberAPI.read_record_member(USER_ORCID,
+                                              'activities',
+                                              token,
+                                              accept_type='application/orcid+xml')
+
+    first_work = activities.xpath(
+        '/activities:activities-summary/activities:works/activities:group/work:work-summary',
+        namespaces=activities.nsmap
+    )[0]
+
+    first_work_title = first_work.xpath(
+        'work:title/common:title',
+        namespaces=activities.nsmap
+    )[0].text
+
+    assert first_work_title == WORK_NAME
+
+    put_code = first_work.attrib['put-code']
+    work = memberAPI.read_record_member(USER_ORCID, 'work', token,
+                                        put_code,
+                                        accept_type='application/orcid+xml')
+
+    work_type = work.xpath(
+        '/work:work/work:type',
+        namespaces=work.nsmap
+    )[0].text
+
+    assert work_type == u'journal-article'
+
+
 def test_work_simple(memberAPI):
     """Test adding, updating and removing an example of a simple work."""
 
@@ -213,6 +249,53 @@ def test_work_simple(memberAPI):
     work['type'] = 'OTHER'
 
     memberAPI.update_record(USER_ORCID, token, 'work', work, put_code)
+
+    added_works = get_added_works(token)
+    assert len(added_works) == 1
+
+    # Remove
+    memberAPI.remove_record(USER_ORCID, token,
+                            'work', put_code)
+    added_works = get_added_works(token)
+    assert len(added_works) == 0
+
+
+def test_work_simple_xml(memberAPI):
+    """Test adding, updating and removing an example of a simple work in XML."""
+
+    def get_added_works(token):
+        activities = memberAPI.read_record_member(USER_ORCID,
+                                                  'activities',
+                                                  token,
+                                                  accept_type='application/orcid+xml')
+        xpath = "/activities:activities-summary/activities:works/" \
+                "activities:group/work:work-summary/work:title/" \
+                "common:title[text() = '%s']/../.." % WORK_NAME3
+        return activities.xpath(xpath, namespaces=activities.nsmap)
+
+    # Add
+    work = exemplary_work_xml
+    token = memberAPI.get_token(USER_EMAIL,
+                                USER_PASSWORD,
+                                REDIRECT_URL)
+
+    memberAPI.add_record(USER_ORCID, token, 'work', work,
+                         content_type='application/orcid+xml')
+
+    added_works = get_added_works(token)
+    assert len(added_works) == 1
+
+    added_work = added_works[0]
+    added_work_title = added_work.xpath("work:type",
+                                        namespaces=added_work.nsmap)[0].text
+    assert added_work_title == u'journal-article'
+    put_code = added_work.attrib['put-code']
+
+    # Update
+    work.xpath("work:type", namespaces=added_work.nsmap)[0].text = 'other'
+
+    memberAPI.update_record(USER_ORCID, token, 'work', work, put_code,
+                            content_type='application/orcid+xml')
 
     added_works = get_added_works(token)
     assert len(added_works) == 1
