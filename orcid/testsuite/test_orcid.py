@@ -190,13 +190,12 @@ def test_read_record_member_xml(memberAPI):
                                 USER_PASSWORD,
                                 REDIRECT_URL,
                                 '/read-limited')
-    activities = memberAPI.read_record_member(USER_ORCID,
-                                              'activities',
-                                              token,
-                                              accept_type='application/orcid+xml')
+    activities = memberAPI.read_record_member(
+        USER_ORCID, 'activities', token, accept_type='application/orcid+xml')
 
     first_work = activities.xpath(
-        '/activities:activities-summary/activities:works/activities:group/work:work-summary',
+        '/activities:activities-summary/activities:works'
+        '/activities:group/work:work-summary',
         namespaces=activities.nsmap
     )[0]
 
@@ -261,13 +260,12 @@ def test_work_simple(memberAPI):
 
 
 def test_work_simple_xml(memberAPI):
-    """Test adding, updating and removing an example of a simple work in XML."""
+    """Test adding, updating, removing an example of a simple work in XML."""
 
     def get_added_works(token):
-        activities = memberAPI.read_record_member(USER_ORCID,
-                                                  'activities',
-                                                  token,
-                                                  accept_type='application/orcid+xml')
+        activities = memberAPI.read_record_member(
+            USER_ORCID, 'activities', token,
+            accept_type='application/orcid+xml')
         xpath = "/activities:activities-summary/activities:works/" \
                 "activities:group/work:work-summary/work:title/" \
                 "common:title[text() = '%s']/../.." % WORK_NAME3

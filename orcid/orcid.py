@@ -375,7 +375,8 @@ class PublicAPI(object):
                 and put_code is not None and not isinstance(put_code, list):
             raise ValueError("""In order to fetch multiple records,
                                the 'put_code' should be a list.""")
-        response = function(orcid_id, request_type, token, put_code, accept_type)
+        response = function(orcid_id, request_type, token,
+                            put_code, accept_type)
         response.raise_for_status()
         return self._deserialize_by_content_type(response.content, accept_type)
 
@@ -410,7 +411,8 @@ class PublicAPI(object):
             return json.loads(data)
         if content_type == 'application/orcid+xml':
             return etree.XML(data)
-        raise NotImplementedError('No deserializer for content of type %s' % content_type)
+        raise NotImplementedError('No deserializer for content of type %s'
+                                  % content_type)
 
 
 class MemberAPI(PublicAPI):
@@ -443,7 +445,7 @@ class MemberAPI(PublicAPI):
                 'https://orcid.org/oauth/custom/authorize.json'
 
     def add_record(self, orcid_id, token, request_type, data,
-                      content_type='application/orcid+json'):
+                   content_type='application/orcid+json'):
         """Add a record to a profile.
 
         Parameters
@@ -468,7 +470,8 @@ class MemberAPI(PublicAPI):
             Put-code of the new work.
         """
         return self._update_activities(orcid_id, token, requests.post,
-                                       request_type, data, content_type=content_type)
+                                       request_type, data,
+                                       content_type=content_type)
 
     def get_token(self, user_id, password, redirect_uri,
                   scope='/activities/update'):
@@ -686,14 +689,16 @@ class MemberAPI(PublicAPI):
         return requests.get(request_url, headers=headers)
 
     def _update_activities(self, orcid_id, token, method, request_type,
-                           data=None, put_code=None, content_type='application/orcid+json'):
+                           data=None, put_code=None,
+                           content_type='application/orcid+json'):
         url = "%s/%s/%s" % (self._endpoint + VERSION, orcid_id,
                             request_type)
 
         if put_code:
             url += ('/%s' % put_code)
             if data is not None:
-                self._add_put_code_by_content_type(content_type, data, put_code)
+                self._add_put_code_by_content_type(content_type, data,
+                                                   put_code)
 
         headers = {'Accept': 'application/orcid+json',
                    'Content-Type': content_type,
@@ -717,11 +722,13 @@ class MemberAPI(PublicAPI):
         elif content_type == 'application/orcid+xml':
             data.attrib['put-code'] = '%s' % put_code
         else:
-            raise NotImplementedError('Cannot add to content of type %s' % content_type)
+            raise NotImplementedError('Cannot add to content of type %s'
+                                      % content_type)
 
     def _serialize_by_content_type(self, data, content_type):
         if content_type == 'application/orcid+json':
             return json.dumps(data)
         if content_type == 'application/orcid+xml':
             return etree.tostring(data)
-        raise NotImplementedError('No serializer for content of type %s' % content_type)
+        raise NotImplementedError('No serializer for content of type %s'
+                                  % content_type)
