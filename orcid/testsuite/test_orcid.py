@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from orcid import MemberAPI
 from orcid import PublicAPI
-from requests.exceptions import HTTPError
+from time import sleep
 
 from .helpers import exemplary_work, exemplary_work_xml
 from .helpers import WORK_NAME2, WORK_NAME3
@@ -20,6 +20,17 @@ REDIRECT_URL = os.environ['REDIRECT_URL']
 USER_ORCID = os.environ['USER_ORCID']
 TOKEN_RE = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 WORK_NAME = u'WY51MF0OCMU37MVGMUX1M92G6FR1IQUW'
+
+
+def assert_with_retry(assertion, retries=3):
+    for i in range(retries):
+        try:
+            assert assertion()
+            return
+        except AssertionError:
+            if i == retries - 1:
+                raise
+        sleep(5)
 
 
 def fullmatch(regex, string, flags=0):
@@ -190,13 +201,12 @@ def test_read_record_member_xml(memberAPI):
                                 USER_PASSWORD,
                                 REDIRECT_URL,
                                 '/read-limited')
-    activities = memberAPI.read_record_member(USER_ORCID,
-                                              'activities',
-                                              token,
-                                              accept_type='application/orcid+xml')
+    activities = memberAPI.read_record_member(
+        USER_ORCID, 'activities', token, accept_type='application/orcid+xml')
 
     first_work = activities.xpath(
-        '/activities:activities-summary/activities:works/activities:group/work:work-summary',
+        '/activities:activities-summary/activities:works'
+        '/activities:group/work:work-summary',
         namespaces=activities.nsmap
     )[0]
 
@@ -240,8 +250,8 @@ def test_work_simple(memberAPI):
 
     memberAPI.add_record(USER_ORCID, token, 'work', work)
 
+    assert_with_retry(lambda: len(get_added_works(token)) == 1)
     added_works = get_added_works(token)
-    assert len(added_works) == 1
     assert added_works[0]['work-summary'][0]['type'] == u'JOURNAL_ARTICLE'
     put_code = added_works[0]['work-summary'][0]['put-code']
 
@@ -250,24 +260,21 @@ def test_work_simple(memberAPI):
 
     memberAPI.update_record(USER_ORCID, token, 'work', work, put_code)
 
-    added_works = get_added_works(token)
-    assert len(added_works) == 1
+    assert_with_retry(lambda: len(get_added_works(token)) == 1)
 
     # Remove
     memberAPI.remove_record(USER_ORCID, token,
                             'work', put_code)
-    added_works = get_added_works(token)
-    assert len(added_works) == 0
+    assert_with_retry(lambda: len(get_added_works(token)) == 0)
 
 
 def test_work_simple_xml(memberAPI):
-    """Test adding, updating and removing an example of a simple work in XML."""
+    """Test adding, updating, removing an example of a simple work in XML."""
 
     def get_added_works(token):
-        activities = memberAPI.read_record_member(USER_ORCID,
-                                                  'activities',
-                                                  token,
-                                                  accept_type='application/orcid+xml')
+        activities = memberAPI.read_record_member(
+            USER_ORCID, 'activities', token,
+            accept_type='application/orcid+xml')
         xpath = "/activities:activities-summary/activities:works/" \
                 "activities:group/work:work-summary/work:title/" \
                 "common:title[text() = '%s']/../.." % WORK_NAME3
@@ -282,8 +289,8 @@ def test_work_simple_xml(memberAPI):
     memberAPI.add_record(USER_ORCID, token, 'work', work,
                          content_type='application/orcid+xml')
 
+    assert_with_retry(lambda: len(get_added_works(token)) == 1)
     added_works = get_added_works(token)
-    assert len(added_works) == 1
 
     added_work = added_works[0]
     added_work_title = added_work.xpath("work:type",
@@ -297,14 +304,12 @@ def test_work_simple_xml(memberAPI):
     memberAPI.update_record(USER_ORCID, token, 'work', work, put_code,
                             content_type='application/orcid+xml')
 
-    added_works = get_added_works(token)
-    assert len(added_works) == 1
+    assert_with_retry(lambda: len(get_added_works(token)) == 1)
 
     # Remove
     memberAPI.remove_record(USER_ORCID, token,
                             'work', put_code)
-    added_works = get_added_works(token)
-    assert len(added_works) == 0
+    assert_with_retry(lambda: len(get_added_works(token)) == 0)
 
 
 def test_get_orcid(memberAPI):

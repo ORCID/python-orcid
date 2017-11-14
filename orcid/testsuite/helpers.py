@@ -29,7 +29,9 @@ exemplary_work = {
     }
 
 exemplary_work_xml = XML("""
-<work:work xmlns:common="http://www.orcid.org/ns/common" xmlns:work="http://www.orcid.org/ns/work">
+<work:work
+        xmlns:common="http://www.orcid.org/ns/common"
+        xmlns:work="http://www.orcid.org/ns/work">
     <work:title>
         <common:title>""" + WORK_NAME3 + """</common:title>
     </work:title>
