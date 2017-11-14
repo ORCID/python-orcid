@@ -45,13 +45,13 @@ are very welcome. Please read CONTRIBUTING.rst in case of suggestions.
 Error handling
 --------------
 
-The methods of this library might throw client or server errors. An error is 
+The methods of this library might throw client or server errors. An error is
 an exception coming from the proven
 `requests <http://docs.python-requests.org/en/latest/>`_ library. The usual
 way to work with them should be:
 
 .. code-block:: python
-  
+
     from requests import RequestException
     import orcid
     api = orcid.MemberAPI(key, secret, sandbox=True)
@@ -249,14 +249,18 @@ A minimal example, only the mandatory fields are filled.
 .. code-block:: python
 
     {
-        'title': {'title': 'API Test Title'},
-        'type': 'JOURNAL_ARTICLE',
-        'external-ids': [{
-            'external-id': [{
-                'external-id-type': 'source-work-id',
-                'external-id-value': '1234'
-            }]
-        }]
+      'external-identifiers': {
+        'work-external-identifier': [
+          {
+            'external-identifier-id': '1234',
+            'external-identifier-type': 'source-work-id'
+          }
+        ]
+      },
+      'title': {
+        'title': 'API Test Title'
+      },
+      'type': 'JOURNAL_ARTICLE'
     }
 
 An example where all the fields are filled.
@@ -264,76 +268,79 @@ An example where all the fields are filled.
 .. code-block:: python
 
     {
-        'title': {'title': 'API Test Title',
-                  'subtitle': 'My Subtitle',
-                  'translated-title':
+      'citation': {
+        'citation': u'@book{Kats:2015sss,
+                      author = "Lastname, Firstname",
+                      title  = "API Test Title",
+                      volume = "25",
+                      year = "2010",
+                      eprint = "0000.00000",
+                      archivePrefix  = "arXiv",
+                      primaryClass   = "hep-ph",
+                      SLACcitation   = "%%CITATION = ARXIV:0000.00000;%%"}',
+        # Available types:
+        # 'FORMATTED-UNSPECIFIED'
+        # 'BIBTEX'
+        # 'FORMATTED_APA'
+        # 'FORMATTED_HARVARD'
+        # 'FORMATTED_IEEE'
+        # 'FORMATTED_MLA'
+        # 'FORMATTED_VANCOUVER'
+        # 'FORMATTED_CHICAGO'
+        'citation-type': 'BIBTEX'
+      },
+      'contributors': {
+        'contributor': [
+          {
+            'contributor-attributes': {
+              # Supported roles:
+              # 'AUTHOR'
+              # 'ASSIGNEE'
+              # 'EDITOR
+              # 'CHAIR_OR_TRANSLATOR'
+              # 'CO_INVESTIGATOR'
+              # 'CO_INVENTOR'
+              # 'GRADUATE_STUDENT'
+              # 'OTHER_INVENTOR'
+              # 'PRINCIPAL_INVESTIGATOR'
+              # 'POSTDOCTORAL_RESEARCHER'
+              # 'SUPPORT_STAFF'
+              'contributor-role': 'AUTHOR',
+              # One of 'ADDITIONAL', 'FIRST'
+              'contributor-sequence': 'FIRST'
+            },
+            'contributor-orcid': '0000-0000-0000',
+            'credit-name': 'LastName, FirstName''
+          }
+        ]
+      },
+      # See http://members.orcid.org/api/supported-work-identifiers
+      'external-identifiers': {
+        'work-external-identifier': [
+          {
+            'external-identifier-id': '1234',
+            'external-identifier-type': 'source-work-id',
+            'external-identifier-ur': 'www.example.com/12344'
+          }
+        ]
+      },
+      'journal-title': 'Journal Title',
+      'short-description': 'My abstract',
+      'title': {
+        'subtitle': 'My Subtitle',
+        'title': 'API Test Title'
+        'translated-title':
                         {'language-code': 'pl',
                          'value': u'API Tytuł testowy'}
-                 },
-        'journal-title': 'Journal Title',
-        'short-description': 'My abstract',
-        'citation': {
-            'citation': '''@article {ORCIDtest2014,
-                           author = "Lastname, Firstname",
-                           title = "API Test Title",
-                           journal = "Journal Title",
-                           volume = "25",
-                           number = "4",
-                           year = "2010",
-                           pages = "259-264",
-                           doi = "doi:10.1087/20120404"
-                         }''',
-            # Available types:
-            # 'FORMATTED-UNSPECIFIED'
-            # 'BIBTEX'
-            # 'FORMATTED_APA'
-            # 'FORMATTED_HARVARD'
-            # 'FORMATTED_IEEE'
-            # 'FORMATTED_MLA'
-            # 'FORMATTED_VANCOUVER'
-            # 'FORMATTED_CHICAGO'
-            'citation-type': 'BIBTEX'
-        },
-        # See http://members.orcid.org/api/supported-work-types
-        'type': 'JOURNAL_ARTICLE',
-        'publication-date': {'year': '2010',
-                             'month': '11',
-                             'day': '10'
-        },
-        # See http://members.orcid.org/api/supported-work-identifiers
-        'external-ids': { 'external-id':[{
-            'external-id-type': 'source-work-id',
-            'external-id-value': '1234',
-            'external-id-url': 'www.example.com/12344'
-        }]},
-        'url': 'https://github.com/MSusik/python-orcid',
-        'contributors': {'contributor': [{
-            'credit-name': 'LastName, FirstName',
-            'contributor-orcid': '0000-0001-5109-3700',
-            'contributor-email': 'somebody@mailinator.com',
-            'contributor-attributes': {
-                # Supported roles:
-                # 'AUTHOR'
-                # 'ASSIGNEE'
-                # 'EDITOR'
-                # 'CHAIR_OR_TRANSLATOR'
-                # 'CO_INVESTIGATOR'
-                # 'CO_INVENTOR'
-                # 'GRADUATE_STUDENT'
-                # 'OTHER_INVENTOR'
-                # 'PRINCIPAL_INVESTIGATOR'
-                # 'POSTDOCTORAL_RESEARCHER'
-                # 'SUPPORT_STAFF'
-                'contributor-role': 'SUPPORT_STAFF',
-                # One of 'ADDITIONAL', 'FIRST'
-                'contributor-sequence': 'ADDITIONAL'
-            }
-        }]},
-        # ISO-629-1: http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
-        'language-code': 'en',
-        'country': {'value': 'US', 'visibility': 'PUBLIC'}
+      },
+      # See http://members.orcid.org/api/supported-work-types
+      'type': 'JOURNAL_ARTICLE',
+      'publication-date': {
+        'day': '11',
+        'month': '10',
+        'year': '2010'
+      },
     }
-
 
 education or employment
 ~~~~~~~~~~~~~~~~~~~~~~~
