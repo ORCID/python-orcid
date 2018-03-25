@@ -28,19 +28,7 @@ Installation
 
     pip install orcid
 
-Notes
------
-
-Currently the library works fully only for the sandbox. It uses API version
-2.0_rc2 wherever it's applicable. Use at your own risk for production systems.
-
-The library will be stable when the 2.0_rc2 API is released.
-
-If there are changes in ORCID API, the library might not work till the changes
-are implemented by me in this library. Pull requests and submitting issues
-are very welcome. Please read CONTRIBUTING.rst in case of suggestions.
-
-Error handling
+Exception handling
 --------------
 
 The methods of this library might throw client or server errors. An error is 
