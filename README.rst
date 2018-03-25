@@ -13,9 +13,7 @@ python-orcid
   :target: https://pypi.python.org/pypi/orcid/
 .. image:: https://img.shields.io/pypi/l/orcid.svg?style=flat-square
   :target: https://pypi.python.org/pypi/orcid/
-.. image:: https://img.shields.io/badge/python-2.6%202.7%203.3%203.4-blue.svg?style=flat-square
-  :target: https://pypi.python.org/pypi/orcid/
-.. image:: https://img.shields.io/badge/status-alpha-red.svg?style=flat-square
+.. image:: https://img.shields.io/badge/status-beta-red.svg?style=flat-square
   :target: https://pypi.python.org/pypi/orcid/
 
 Authors
