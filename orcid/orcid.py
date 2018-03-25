@@ -168,9 +168,6 @@ class PublicAPI(object):
             Query in line with the chosen method.
         :param method: string
             One of 'lucene', 'edismax', 'dismax'
-        :param search_field: string
-            Scope used for seaching. The default one allows to search
-            everywhere.
         :param pagination: integer
             How many papers should be fetched with the request.
         :param access_token: string
@@ -583,9 +580,6 @@ class MemberAPI(PublicAPI):
             Index of the first record requested. Use for pagination.
         :param rows: string
             Number of records requested. Use for pagination.
-        :search_field: string
-            Scope used for seaching. The default one allows to search
-            everywhere.
         :param access_token: string
             If obtained before, the access token to use to pass through
             authorization. Note that if this argument is not provided,
@@ -620,9 +614,6 @@ class MemberAPI(PublicAPI):
             Query in line with the chosen method.
         :param method: string
             One of 'lucene', 'edismax', 'dismax'
-        :param search_field: string
-            Scope used for seaching. The default one allows to search
-            everywhere.
         :param pagination: integer
             How many papers should be fetched with the request.
         :param access_token: string
