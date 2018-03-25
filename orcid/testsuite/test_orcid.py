@@ -7,10 +7,10 @@ from uuid import uuid4
 
 from orcid import MemberAPI
 from orcid import PublicAPI
-from orcid import SearchAPI
+from time import sleep
 
-from .helpers import exemplary_work
-from .helpers import WORK_NAME2
+from .helpers import exemplary_work, exemplary_work_xml
+from .helpers import WORK_NAME2, WORK_NAME3
 
 CLIENT_KEY = os.environ['CLIENT_KEY']
 CLIENT_SECRET = os.environ['CLIENT_SECRET']
@@ -22,63 +22,20 @@ TOKEN_RE = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 WORK_NAME = u'WY51MF0OCMU37MVGMUX1M92G6FR1IQUW'
 
 
+def assert_with_retry(assertion, retries=3):
+    for i in range(retries):
+        try:
+            assert assertion()
+            return
+        except AssertionError:
+            if i == retries - 1:
+                raise
+        sleep(5)
+
+
 def fullmatch(regex, string, flags=0):
     """Emulate python-3.4 re.fullmatch()."""
     return re.match("(?:" + regex + r")\Z", string, flags=flags)
-
-
-@pytest.fixture
-def searchAPI():
-    """Get SearchAPI handler."""
-    return SearchAPI(sandbox=True)
-
-
-def test_search_public(searchAPI):
-    """Test search_public."""
-
-    results = searchAPI.search_public('text:%s' % WORK_NAME)
-    assert results['orcid-search-results']['orcid-search-result'][0][
-                   'orcid-profile']['orcid-identifier'][
-                   'path'] == USER_ORCID
-
-    results = searchAPI.search_public('family-name:Sanchez', start=2, rows=6)
-    # Just check if the request suceeded
-
-    assert results['error-desc'] is None
-
-
-def test_search_public_generator(searchAPI):
-    """Test search public with a generator."""
-
-    results = searchAPI.search_public('text:%s' % WORK_NAME)
-    assert results['orcid-search-results']['orcid-search-result'][0][
-                   'orcid-profile']['orcid-identifier'][
-                   'path'] == USER_ORCID
-
-    generator = searchAPI.search_public_generator('family-name:Sanchez')
-    result = next(generator)
-    result = next(generator)
-    # Just check if the request suceeded
-
-    assert result['relevancy-score']['value'] > 0
-
-
-def test_search_public_generator_no_results(searchAPI):
-    generator = searchAPI.search_public_generator('family-name:' +
-                                                  str(uuid4()))
-
-    with pytest.raises(StopIteration):
-        next(generator)
-
-
-def test_search_public_generator_pagination(searchAPI):
-    generator = searchAPI.search_public_generator('family-name:Sanchez',
-                                                  pagination=1)
-    result = next(generator)
-    result = next(generator)
-    # Just check if the request suceeded
-
-    assert result['relevancy-score']['value'] > 0
 
 
 @pytest.fixture
@@ -150,6 +107,50 @@ def test_read_record_public(publicAPI):
     assert "please specify the 'put_code' argument" in str(excinfo.value)
 
 
+def test_search_public(publicAPI):
+    """Test search_public."""
+
+    results = publicAPI.search('text:%s' % WORK_NAME)
+    assert results['result'][0]['orcid-identifier']['path'] == USER_ORCID
+
+    results = publicAPI.search('family-name:Sanchez', start=2, rows=6)
+    # Just check if the request suceeded
+
+    assert results['num-found'] > 0
+
+
+def test_search_public_generator(publicAPI):
+    """Test search public with a generator."""
+
+    results = publicAPI.search('text:%s' % WORK_NAME)
+    assert results['result'][0]['orcid-identifier']['path'] == USER_ORCID
+
+    generator = publicAPI.search_generator('family-name:Sanchez')
+    result = next(generator)
+    result = next(generator)
+    # Just check if the request suceeded
+
+    assert 'orcid-identifier' in result
+
+
+def test_search_public_generator_no_results(publicAPI):
+    generator = publicAPI.search_generator('family-name:' +
+                                           str(uuid4()))
+
+    with pytest.raises(StopIteration):
+        next(generator)
+
+
+def test_search_public_generator_pagination(publicAPI):
+    generator = publicAPI.search_generator('family-name:Sanchez',
+                                           pagination=1)
+    result = next(generator)
+    result = next(generator)
+    # Just check if the request suceeded
+
+    assert 'orcid-identifier' in result
+
+
 @pytest.fixture
 def memberAPI():
     """Get memberAPI handler."""
@@ -159,24 +160,21 @@ def memberAPI():
 
 def test_apis_common_functionalities(memberAPI):
     """Check if the member API has functionalities of the other apis."""
-    assert hasattr(getattr(memberAPI, 'search_public'), '__call__')
+    assert hasattr(getattr(memberAPI, 'search'), '__call__')
     assert hasattr(getattr(memberAPI, 'get_token'), '__call__')
 
 
 def test_search_member(memberAPI):
     """Test search_member."""
-    results = memberAPI.search_member('text:%s' % WORK_NAME)
-    assert results['orcid-search-results']['orcid-search-result'][0][
-                   'orcid-profile']['orcid-identifier'][
-                   'path'] == USER_ORCID
+    results = memberAPI.search('text:%s' % WORK_NAME)
+    assert results['result'][0]['orcid-identifier']['path'] == USER_ORCID
 
 
 def test_search_member_generator(memberAPI):
     """Test search_member with generator."""
-    generator = memberAPI.search_member_generator('text:%s' % WORK_NAME)
+    generator = memberAPI.search_generator('text:%s' % WORK_NAME)
     results = next(generator)
-    assert results['orcid-profile']['orcid-identifier'][
-                   'path'] == USER_ORCID
+    assert results['orcid-identifier']['path'] == USER_ORCID
 
 
 def test_read_record_member(memberAPI):
@@ -195,6 +193,41 @@ def test_read_record_member(memberAPI):
     work = memberAPI.read_record_member(USER_ORCID, 'work', token,
                                         put_code)
     assert work['type'] == u'JOURNAL_ARTICLE'
+
+
+def test_read_record_member_xml(memberAPI):
+    """Test reading records from XML."""
+    token = memberAPI.get_token(USER_EMAIL,
+                                USER_PASSWORD,
+                                REDIRECT_URL,
+                                '/read-limited')
+    activities = memberAPI.read_record_member(
+        USER_ORCID, 'activities', token, accept_type='application/orcid+xml')
+
+    first_work = activities.xpath(
+        '/activities:activities-summary/activities:works'
+        '/activities:group/work:work-summary',
+        namespaces=activities.nsmap
+    )[0]
+
+    first_work_title = first_work.xpath(
+        'work:title/common:title',
+        namespaces=activities.nsmap
+    )[0].text
+
+    assert first_work_title == WORK_NAME
+
+    put_code = first_work.attrib['put-code']
+    work = memberAPI.read_record_member(USER_ORCID, 'work', token,
+                                        put_code,
+                                        accept_type='application/orcid+xml')
+
+    work_type = work.xpath(
+        '/work:work/work:type',
+        namespaces=work.nsmap
+    )[0].text
+
+    assert work_type == u'journal-article'
 
 
 def test_work_simple(memberAPI):
@@ -217,30 +250,66 @@ def test_work_simple(memberAPI):
 
     memberAPI.add_record(USER_ORCID, token, 'work', work)
 
+    assert_with_retry(lambda: len(get_added_works(token)) == 1)
     added_works = get_added_works(token)
-    assert len(added_works) == 1
     assert added_works[0]['work-summary'][0]['type'] == u'JOURNAL_ARTICLE'
     put_code = added_works[0]['work-summary'][0]['put-code']
 
     # Update
-    memberAPI.update_record(USER_ORCID, token, 'work', {
-        'type': 'OTHER',
-        'title': {'title': WORK_NAME2},
-        'external-ids': {'external-id': [{
-            'external-id-type': 'source-work-id',
-            'external-id-value': '1234333',
-            'external-id-url': 'www.example.com/12344333'
-        }]}},
-        put_code)
+    work['type'] = 'OTHER'
 
-    added_works = get_added_works(token)
-    assert len(added_works) == 1
+    memberAPI.update_record(USER_ORCID, token, 'work', work, put_code)
+
+    assert_with_retry(lambda: len(get_added_works(token)) == 1)
 
     # Remove
     memberAPI.remove_record(USER_ORCID, token,
                             'work', put_code)
+    assert_with_retry(lambda: len(get_added_works(token)) == 0)
+
+
+def test_work_simple_xml(memberAPI):
+    """Test adding, updating, removing an example of a simple work in XML."""
+
+    def get_added_works(token):
+        activities = memberAPI.read_record_member(
+            USER_ORCID, 'activities', token,
+            accept_type='application/orcid+xml')
+        xpath = "/activities:activities-summary/activities:works/" \
+                "activities:group/work:work-summary/work:title/" \
+                "common:title[text() = '%s']/../.." % WORK_NAME3
+        return activities.xpath(xpath, namespaces=activities.nsmap)
+
+    # Add
+    work = exemplary_work_xml
+    token = memberAPI.get_token(USER_EMAIL,
+                                USER_PASSWORD,
+                                REDIRECT_URL)
+
+    memberAPI.add_record(USER_ORCID, token, 'work', work,
+                         content_type='application/orcid+xml')
+
+    assert_with_retry(lambda: len(get_added_works(token)) == 1)
     added_works = get_added_works(token)
-    assert len(added_works) == 0
+
+    added_work = added_works[0]
+    added_work_title = added_work.xpath("work:type",
+                                        namespaces=added_work.nsmap)[0].text
+    assert added_work_title == u'journal-article'
+    put_code = added_work.attrib['put-code']
+
+    # Update
+    work.xpath("work:type", namespaces=added_work.nsmap)[0].text = 'other'
+
+    memberAPI.update_record(USER_ORCID, token, 'work', work, put_code,
+                            content_type='application/orcid+xml')
+
+    assert_with_retry(lambda: len(get_added_works(token)) == 1)
+
+    # Remove
+    memberAPI.remove_record(USER_ORCID, token,
+                            'work', put_code)
+    assert_with_retry(lambda: len(get_added_works(token)) == 0)
 
 
 def test_get_orcid(memberAPI):

@@ -31,12 +31,14 @@ setup(author='Mateusz Susik',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Internet',
         'Topic :: Utilities'
       ],
       cmdclass={'test': PyTest},
       description='A python wrapper over the ORCID API',
-      install_requires=['beautifulsoup4', 'requests', 'simplejson'],
+      install_requires=['html5lib', 'beautifulsoup4', 'requests', 'simplejson', 'lxml'],
       keywords=['orcid', 'api', 'wrapper'],
       license='BSD',
       long_description=open('README.rst', 'r').read(),
@@ -44,5 +46,5 @@ setup(author='Mateusz Susik',
       packages=['orcid'],
       tests_require=['pytest', 'coverage', 'httpretty'],
       url='https://github.com/ORCID/python-orcid',
-      version='0.7.0'
+      version='1.0.0'
       )
