@@ -16,7 +16,7 @@ else:
 SEARCH_VERSION = "/v2.0"
 VERSION = "/v2.0"
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 
 class PublicAPI(object):

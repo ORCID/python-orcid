@@ -28,6 +28,12 @@ Installation
 
     pip install orcid
 
+
+Notes
+-----
+
+This README might be slightly outdated. You can help by submitting a pull request.
+
 Exception handling
 --------------
 
