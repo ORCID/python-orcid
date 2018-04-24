@@ -8,6 +8,7 @@ from uuid import uuid4
 from orcid import MemberAPI
 from orcid import PublicAPI
 from time import sleep
+from requests.exceptions import Timeout
 
 from .helpers import exemplary_work, exemplary_work_xml
 from .helpers import WORK_NAME2, WORK_NAME3
@@ -327,3 +328,16 @@ def test_get_token(memberAPI):
                                 REDIRECT_URL)
 
     assert fullmatch(TOKEN_RE, token) is not None
+
+
+def test_timeout():
+    publicAPI = PublicAPI(sandbox=True,
+                          institution_key=CLIENT_KEY,
+                          institution_secret=CLIENT_SECRET,
+                          timeout=0.000001)
+
+    with pytest.raises(Timeout):
+        publicAPI.get_token(USER_EMAIL,
+                            USER_PASSWORD,
+                            REDIRECT_URL,
+                            '/read-limited')

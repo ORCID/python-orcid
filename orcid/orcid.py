@@ -36,7 +36,8 @@ class PublicAPI(object):
 
     TYPES_WITH_MULTIPLE_PUTCODES = set(['works'])
 
-    def __init__(self, institution_key, institution_secret, sandbox=False):
+    def __init__(self, institution_key, institution_secret, sandbox=False,
+                 timeout=None):
         """Initialize public API.
 
         Parameters
@@ -48,9 +49,15 @@ class PublicAPI(object):
         :param sandbox: boolean
             Should the sandbox be used. False (default) indicates production
             mode.
+        :param timeout: float or tuple
+            The request timeout in seconds. If None, no timeout is used. See
+            `requests documentation
+            <http://docs.python-requests.org/en/master/user/advanced/#timeouts>`_
+            for more information.
         """
         self._key = institution_key
         self._secret = institution_secret
+        self._timeout = timeout
         if sandbox:
             self._host = "sandbox.orcid.org"
             self._login_or_register_endpoint = \
@@ -221,7 +228,8 @@ class PublicAPI(object):
         url = "%s/oauth/token" % self._endpoint
         headers = {'Accept': 'application/json'}
 
-        response = requests.post(url, data=payload, headers=headers)
+        response = requests.post(url, data=payload, headers=headers,
+                                 timeout=self._timeout)
         response.raise_for_status()
         return response.json()['access_token']
 
@@ -279,7 +287,8 @@ class PublicAPI(object):
             "redirect_uri": redirect_uri,
         }
         response = requests.post(self._token_url, data=token_dict,
-                                 headers={'Accept': 'application/json'})
+                                 headers={'Accept': 'application/json'},
+                                 timeout=self._timeout)
         response.raise_for_status()
         return json.loads(response.text)
 
@@ -314,7 +323,8 @@ class PublicAPI(object):
     def _authenticate(self, user_id, password, redirect_uri, scope):
 
         session = requests.session()
-        session.get('https://' + self._host + '/signout')
+        session.get('https://' + self._host + '/signout',
+                    timeout=self._timeout)
         params = {
             'client_id': self._key,
             'response_type': 'code',
@@ -324,7 +334,8 @@ class PublicAPI(object):
 
         response = session.get(self._login_or_register_endpoint,
                                params=params,
-                               headers={'Host': self._host})
+                               headers={'Host': self._host},
+                               timeout=self._timeout)
 
         response.raise_for_status()
 
@@ -388,7 +399,8 @@ class PublicAPI(object):
                 request_url += '/%s' % put_code
         headers = {'Accept': accept_type,
                    'Authorization': 'Bearer %s' % access_token}
-        return requests.get(request_url, headers=headers)
+        return requests.get(request_url, headers=headers,
+                            timeout=self._timeout)
 
     def _search(self, query, method, start, rows, headers,
                 endpoint):
@@ -399,7 +411,8 @@ class PublicAPI(object):
         if rows:
             url += "&rows=%s" % rows
 
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers,
+                                timeout=self._timeout)
         response.raise_for_status()
         return response.json()
 
@@ -415,7 +428,8 @@ class PublicAPI(object):
 class MemberAPI(PublicAPI):
     """Member API."""
 
-    def __init__(self, institution_key, institution_secret, sandbox=False):
+    def __init__(self, institution_key, institution_secret, sandbox=False,
+                 timeout=None):
         """Initialize member API.
 
         Parameters
@@ -427,8 +441,14 @@ class MemberAPI(PublicAPI):
         :param sandbox: boolean
             Should the sandbox be used. False (default) indicates production
             mode.
+        :param timeout: float or tuple
+            The request timeout in seconds. If None, no timeout is used. See
+            `requests documentation
+            <http://docs.python-requests.org/en/master/user/advanced/#timeouts>`_
+            for more information.
         """
-        PublicAPI.__init__(self, institution_key, institution_secret, sandbox)
+        super(MemberAPI, self).__init__(institution_key,
+                                        institution_secret, sandbox, timeout)
 
         if sandbox:
             self._endpoint = "https://api.sandbox.orcid.org"
@@ -677,7 +697,8 @@ class MemberAPI(PublicAPI):
                 request_url += '/%s' % put_code
         headers = {'Accept': accept_type,
                    'Authorization': 'Bearer %s' % access_token}
-        return requests.get(request_url, headers=headers)
+        return requests.get(request_url, headers=headers,
+                            timeout=self._timeout)
 
     def _update_activities(self, orcid_id, token, method, request_type,
                            data=None, put_code=None,
@@ -696,10 +717,10 @@ class MemberAPI(PublicAPI):
                    'Authorization': 'Bearer ' + token}
 
         if method == requests.delete:
-            response = method(url, headers=headers)
+            response = method(url, headers=headers, timeout=self._timeout)
         else:
             xml = self._serialize_by_content_type(data, content_type)
-            response = method(url, xml, headers=headers)
+            response = method(url, xml, headers=headers, timeout=self._timeout)
 
         response.raise_for_status()
 
