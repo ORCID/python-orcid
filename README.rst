@@ -9,8 +9,6 @@ python-orcid
   :target: https://travis-ci.org/ORCID/python-orcid
 .. image:: https://img.shields.io/coveralls/ORCID/python-orcid.svg?style=flat-square
   :target: https://coveralls.io/r/ORCID/python-orcid?branch=master
-.. image:: https://img.shields.io/pypi/dm/orcid.svg?style=flat-square
-  :target: https://pypi.python.org/pypi/orcid/
 .. image:: https://img.shields.io/pypi/l/orcid.svg?style=flat-square
   :target: https://pypi.python.org/pypi/orcid/
 .. image:: https://img.shields.io/badge/status-beta-red.svg?style=flat-square
