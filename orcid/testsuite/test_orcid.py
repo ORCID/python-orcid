@@ -9,6 +9,7 @@ from orcid import MemberAPI
 from orcid import PublicAPI
 from time import sleep
 from requests.exceptions import Timeout
+from requests.models import Response
 
 from .helpers import exemplary_work, exemplary_work_xml
 from .helpers import WORK_NAME2, WORK_NAME3
@@ -150,6 +151,15 @@ def test_search_public_generator_pagination(publicAPI):
     # Just check if the request suceeded
 
     assert 'orcid-identifier' in result
+
+
+def test_publicapi_http_response(publicAPI):
+    publicAPI.get_token(USER_EMAIL,
+                        USER_PASSWORD,
+                        REDIRECT_URL,
+                        '/read-limited')
+    assert isinstance(publicAPI.response, Response)
+    assert publicAPI.response.status_code == 200
 
 
 @pytest.fixture
@@ -328,6 +338,14 @@ def test_get_token(memberAPI):
                                 REDIRECT_URL)
 
     assert fullmatch(TOKEN_RE, token) is not None
+
+
+def test_memberapi_http_response(memberAPI):
+    memberAPI.get_token(USER_EMAIL,
+                        USER_PASSWORD,
+                        REDIRECT_URL)
+    assert isinstance(memberAPI.response, Response)
+    assert memberAPI.response.status_code == 200
 
 
 def test_timeout():

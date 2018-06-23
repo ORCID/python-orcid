@@ -58,6 +58,7 @@ class PublicAPI(object):
         self._key = institution_key
         self._secret = institution_secret
         self._timeout = timeout
+        self.response = None
         if sandbox:
             self._host = "sandbox.orcid.org"
             self._login_or_register_endpoint = \
@@ -228,10 +229,10 @@ class PublicAPI(object):
         url = "%s/oauth/token" % self._endpoint
         headers = {'Accept': 'application/json'}
 
-        response = requests.post(url, data=payload, headers=headers,
+        self.response = requests.post(url, data=payload, headers=headers,
                                  timeout=self._timeout)
-        response.raise_for_status()
-        return response.json()['access_token']
+        self.response.raise_for_status()
+        return self.response.json()['access_token']
 
     def get_token(self, user_id, password, redirect_uri,
                   scope='/read-limited'):
@@ -286,11 +287,11 @@ class PublicAPI(object):
             "code": authorization_code,
             "redirect_uri": redirect_uri,
         }
-        response = requests.post(self._token_url, data=token_dict,
+        self.response = requests.post(self._token_url, data=token_dict,
                                  headers={'Accept': 'application/json'},
                                  timeout=self._timeout)
-        response.raise_for_status()
-        return json.loads(response.text)
+        self.response.raise_for_status()
+        return json.loads(self.response.text)
 
     def read_record_public(self, orcid_id, request_type, token, put_code=None,
                            accept_type='application/orcid+json'):
@@ -332,14 +333,14 @@ class PublicAPI(object):
             'redirect_uri': redirect_uri
         }
 
-        response = session.get(self._login_or_register_endpoint,
+        self.response = session.get(self._login_or_register_endpoint,
                                params=params,
                                headers={'Host': self._host},
                                timeout=self._timeout)
 
-        response.raise_for_status()
+        self.response.raise_for_status()
 
-        soup = BeautifulSoup(response.content, 'html5lib')
+        soup = BeautifulSoup(self.response.content, 'html5lib')
         csrf = soup.find(attrs={'name': '_csrf'}).attrs['content']
         headers = {
             'Host': self._host,
@@ -356,14 +357,14 @@ class PublicAPI(object):
             "redirectUrl": None
         }
 
-        response = session.post(
+        self.response = session.post(
             self._login_url,
             data=json.dumps(data),
             headers=headers
         )
-        response.raise_for_status()
+        self.response.raise_for_status()
 
-        uri = json.loads(response.text)['redirectUrl']
+        uri = json.loads(self.response.text)['redirectUrl']
         authorization_code = uri[uri.rfind('=') + 1:]
 
         return self.get_token_from_authorization_code(authorization_code,
@@ -383,10 +384,10 @@ class PublicAPI(object):
                 and put_code is not None and not isinstance(put_code, list):
             raise ValueError("""In order to fetch multiple records,
                                the 'put_code' should be a list.""")
-        response = function(orcid_id, request_type, token,
+        self.response = function(orcid_id, request_type, token,
                             put_code, accept_type)
-        response.raise_for_status()
-        return self._deserialize_by_content_type(response.content, accept_type)
+        self.response.raise_for_status()
+        return self._deserialize_by_content_type(self.response.content, accept_type)
 
     def _get_public_info(self, orcid_id, request_type, access_token, put_code,
                          accept_type):
@@ -411,10 +412,10 @@ class PublicAPI(object):
         if rows:
             url += "&rows=%s" % rows
 
-        response = requests.get(url, headers=headers,
+        self.response = requests.get(url, headers=headers,
                                 timeout=self._timeout)
-        response.raise_for_status()
-        return response.json()
+        self.response.raise_for_status()
+        return self.response.json()
 
     def _deserialize_by_content_type(self, data, content_type):
         if content_type == 'application/orcid+json':
@@ -449,7 +450,7 @@ class MemberAPI(PublicAPI):
         """
         super(MemberAPI, self).__init__(institution_key,
                                         institution_secret, sandbox, timeout)
-
+        self.response = None
         if sandbox:
             self._endpoint = "https://api.sandbox.orcid.org"
             self._auth_url = 'https://sandbox.orcid.org/signin/auth.json'
@@ -717,16 +718,16 @@ class MemberAPI(PublicAPI):
                    'Authorization': 'Bearer ' + token}
 
         if method == requests.delete:
-            response = method(url, headers=headers, timeout=self._timeout)
+            self.response = method(url, headers=headers, timeout=self._timeout)
         else:
             xml = self._serialize_by_content_type(data, content_type)
-            response = method(url, xml, headers=headers, timeout=self._timeout)
+            self.response = method(url, xml, headers=headers, timeout=self._timeout)
 
-        response.raise_for_status()
+        self.response.raise_for_status()
 
-        if 'location' in response.headers:
+        if 'location' in self.response.headers:
             # Return the new put-code
-            return response.headers['location'].split('/')[-1]
+            return self.response.headers['location'].split('/')[-1]
 
     def _add_put_code_by_content_type(self, content_type, data, put_code):
         if content_type == 'application/orcid+json':
