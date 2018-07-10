@@ -157,9 +157,10 @@ def test_publicapi_http_response(publicAPI):
     publicAPI.get_token(USER_EMAIL,
                         USER_PASSWORD,
                         REDIRECT_URL,
-                        '/read-limited')
-    assert isinstance(publicAPI.response, Response)
-    assert publicAPI.response.status_code == 200
+                        '/read-limited',
+                        do_store_raw_response=True)
+    assert isinstance(publicAPI.raw_response, Response)
+    assert publicAPI.raw_response.status_code == 200
 
 
 @pytest.fixture
@@ -343,9 +344,10 @@ def test_get_token(memberAPI):
 def test_memberapi_http_response(memberAPI):
     memberAPI.get_token(USER_EMAIL,
                         USER_PASSWORD,
-                        REDIRECT_URL)
-    assert isinstance(memberAPI.response, Response)
-    assert memberAPI.response.status_code == 200
+                        REDIRECT_URL,
+                        do_store_raw_response=True)
+    assert isinstance(memberAPI.raw_response, Response)
+    assert memberAPI.raw_response.status_code == 200
 
 
 def test_timeout():
