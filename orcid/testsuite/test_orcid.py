@@ -163,10 +163,10 @@ def test_search_public_generator_pagination(publicAPI):
 
 
 def test_publicapi_http_response(publicAPIStoreResponse):
-    publicAPI.get_token(USER_EMAIL,
-                        USER_PASSWORD,
-                        REDIRECT_URL,
-                        '/read-limited')
+    publicAPIStoreResponse.get_token(USER_EMAIL,
+                                     USER_PASSWORD,
+                                     REDIRECT_URL,
+                                     '/read-limited')
     assert isinstance(publicAPI.raw_response, Response)
     assert publicAPI.raw_response.status_code == 200
 
@@ -359,9 +359,9 @@ def test_get_token(memberAPI):
 
 
 def test_memberapi_http_response(memberAPIStoreResponse):
-    memberAPI.get_token(USER_EMAIL,
-                        USER_PASSWORD,
-                        REDIRECT_URL)
+    memberAPIStoreResponse.get_token(USER_EMAIL,
+                                     USER_PASSWORD,
+                                     REDIRECT_URL)
     assert isinstance(memberAPI.raw_response, Response)
     assert memberAPI.raw_response.status_code == 200
 
