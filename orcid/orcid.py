@@ -37,7 +37,7 @@ class PublicAPI(object):
     TYPES_WITH_MULTIPLE_PUTCODES = set(['works'])
 
     def __init__(self, institution_key, institution_secret, sandbox=False,
-                 timeout=None):
+                 timeout=None, do_store_raw_response=False):
         """Initialize public API.
 
         Parameters
@@ -58,6 +58,8 @@ class PublicAPI(object):
         self._key = institution_key
         self._secret = institution_secret
         self._timeout = timeout
+        self.raw_response = None
+        self.do_store_raw_response = do_store_raw_response
         if sandbox:
             self._host = "sandbox.orcid.org"
             self._login_or_register_endpoint = \
@@ -231,6 +233,8 @@ class PublicAPI(object):
         response = requests.post(url, data=payload, headers=headers,
                                  timeout=self._timeout)
         response.raise_for_status()
+        if self.do_store_raw_response:
+            self.raw_response = response
         return response.json()['access_token']
 
     def get_token(self, user_id, password, redirect_uri,
@@ -290,6 +294,8 @@ class PublicAPI(object):
                                  headers={'Accept': 'application/json'},
                                  timeout=self._timeout)
         response.raise_for_status()
+        if self.do_store_raw_response:
+            self.raw_response = response
         return json.loads(response.text)
 
     def read_record_public(self, orcid_id, request_type, token, put_code=None,
@@ -386,6 +392,8 @@ class PublicAPI(object):
         response = function(orcid_id, request_type, token,
                             put_code, accept_type)
         response.raise_for_status()
+        if self.do_store_raw_response:
+            self.raw_response = response
         return self._deserialize_by_content_type(response.content, accept_type)
 
     def _get_public_info(self, orcid_id, request_type, access_token, put_code,
@@ -414,6 +422,8 @@ class PublicAPI(object):
         response = requests.get(url, headers=headers,
                                 timeout=self._timeout)
         response.raise_for_status()
+        if self.do_store_raw_response:
+            self.raw_response = response
         return response.json()
 
     def _deserialize_by_content_type(self, data, content_type):
@@ -429,7 +439,7 @@ class MemberAPI(PublicAPI):
     """Member API."""
 
     def __init__(self, institution_key, institution_secret, sandbox=False,
-                 timeout=None):
+                 timeout=None, do_store_raw_response=False):
         """Initialize member API.
 
         Parameters
@@ -449,7 +459,8 @@ class MemberAPI(PublicAPI):
         """
         super(MemberAPI, self).__init__(institution_key,
                                         institution_secret, sandbox, timeout)
-
+        self.raw_response = None
+        self.do_store_raw_response = do_store_raw_response
         if sandbox:
             self._endpoint = "https://api.sandbox.orcid.org"
             self._auth_url = 'https://sandbox.orcid.org/signin/auth.json'
@@ -723,6 +734,8 @@ class MemberAPI(PublicAPI):
             response = method(url, xml, headers=headers, timeout=self._timeout)
 
         response.raise_for_status()
+        if self.do_store_raw_response:
+            self.raw_response = response
 
         if 'location' in response.headers:
             # Return the new put-code
