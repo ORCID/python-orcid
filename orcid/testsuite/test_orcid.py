@@ -48,6 +48,15 @@ def publicAPI():
                      institution_secret=CLIENT_SECRET)
 
 
+@pytest.fixture
+def publicAPIStoreResponse():
+    """Get PublicAPI handler that stores request."""
+    return PublicAPI(sandbox=True,
+                     institution_key=CLIENT_KEY,
+                     institution_secret=CLIENT_SECRET,
+                     do_store_raw_response=True)
+
+
 def test_get_login_url(publicAPI):
     """Test constructing a login/registration URL."""
     redirect_uri = "https://www.inspirehep.net"
@@ -153,12 +162,11 @@ def test_search_public_generator_pagination(publicAPI):
     assert 'orcid-identifier' in result
 
 
-def test_publicapi_http_response(publicAPI):
+def test_publicapi_http_response(publicAPIStoreResponse):
     publicAPI.get_token(USER_EMAIL,
                         USER_PASSWORD,
                         REDIRECT_URL,
-                        '/read-limited',
-                        do_store_raw_response=True)
+                        '/read-limited')
     assert isinstance(publicAPI.raw_response, Response)
     assert publicAPI.raw_response.status_code == 200
 
@@ -168,6 +176,15 @@ def memberAPI():
     """Get memberAPI handler."""
     return MemberAPI(CLIENT_KEY, CLIENT_SECRET,
                      sandbox=True)
+
+
+@pytest.fixture
+def memberAPIStoreResponse():
+    """Get memberAPI handler that stores response."""
+    return MemberAPI(CLIENT_KEY,
+                     CLIENT_SECRET,
+                     sandbox=True,
+                     do_store_raw_response=True)
 
 
 def test_apis_common_functionalities(memberAPI):
@@ -341,11 +358,10 @@ def test_get_token(memberAPI):
     assert fullmatch(TOKEN_RE, token) is not None
 
 
-def test_memberapi_http_response(memberAPI):
+def test_memberapi_http_response(memberAPIStoreResponse):
     memberAPI.get_token(USER_EMAIL,
                         USER_PASSWORD,
-                        REDIRECT_URL,
-                        do_store_raw_response=True)
+                        REDIRECT_URL)
     assert isinstance(memberAPI.raw_response, Response)
     assert memberAPI.raw_response.status_code == 200
 
