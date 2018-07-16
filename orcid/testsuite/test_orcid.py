@@ -168,7 +168,7 @@ def test_publicapi_http_response(publicAPIStoreResponse):
                                      REDIRECT_URL,
                                      '/read-limited')
     assert isinstance(publicAPIStoreResponse.raw_response, Response)
-    assert publicAPI.raw_response.status_code == 200
+    assert publicAPIStoreResponse.raw_response.status_code == 200
 
 
 @pytest.fixture
@@ -363,7 +363,7 @@ def test_memberapi_http_response(memberAPIStoreResponse):
                                      USER_PASSWORD,
                                      REDIRECT_URL)
     assert isinstance(memberAPIStoreResponse.raw_response, Response)
-    assert memberAPI.raw_response.status_code == 200
+    assert memberAPIStoreResponse.raw_response.status_code == 200
 
 
 def test_timeout():
