@@ -167,7 +167,7 @@ def test_publicapi_http_response(publicAPIStoreResponse):
                                      USER_PASSWORD,
                                      REDIRECT_URL,
                                      '/read-limited')
-    assert isinstance(publicAPI.raw_response, Response)
+    assert isinstance(publicAPIStoreResponse.raw_response, Response)
     assert publicAPI.raw_response.status_code == 200
 
 
@@ -362,7 +362,7 @@ def test_memberapi_http_response(memberAPIStoreResponse):
     memberAPIStoreResponse.get_token(USER_EMAIL,
                                      USER_PASSWORD,
                                      REDIRECT_URL)
-    assert isinstance(memberAPI.raw_response, Response)
+    assert isinstance(memberAPIStoreResponse.raw_response, Response)
     assert memberAPI.raw_response.status_code == 200
 
 
