@@ -33,7 +33,7 @@ Notes
 This README might be slightly outdated. You can help by submitting a pull request.
 
 Exception handling
---------------
+------------------
 
 The methods of this library might throw client or server errors. An error is 
 an exception coming from the proven

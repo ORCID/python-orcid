@@ -1,10 +1,12 @@
 """Implementation of python-orcid library."""
 
-from bs4 import BeautifulSoup
-import requests
-import simplejson as json
+import json
 import sys
-from lxml import etree
+from xml.etree import ElementTree as etree
+
+import requests
+from bs4 import BeautifulSoup
+
 if sys.version_info[0] == 2:
     from urllib import urlencode
     string_types = basestring,
